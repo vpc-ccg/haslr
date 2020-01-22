@@ -1,0 +1,3 @@
+lib/spoa
+src/*.o
+haslr_assemble
