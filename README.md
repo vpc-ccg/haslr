@@ -9,6 +9,13 @@ HASLR is a tool for rapid genome assembly of long sequencing reads. HASLR is a h
 - Python3
 - zlib
 
+### Dependencies
+HASLR depends on the following tools which will be installed automatically:
+- [SPOA](https://github.com/rvaser/spoa) - For consensus calling of long reads
+- [Minia](https://github.com/GATB/minia) - For assembling short reads
+- [minimap2](https://github.com/lh3/minimap2) - For aligning short read contigs onto long reads
+- [fastutils](https://github.com/haghshenas/fastutils) - For FASTA/Q manipulation
+
 ### Building from source
 ```
 git clone https://github.com/vpc-ccg/haslr.git
@@ -42,13 +49,6 @@ optional arguments:
   -v, --version                  print version
   -h, --help                     show this help message and exit
 ```
-
-### Dependencies
-HASLR depends on the following tools which will be installed automatically:
-- [SPOA](https://github.com/rvaser/spoa) - For consensus calling of long reads
-- [Minia](https://github.com/GATB/minia) - For assembling short reads
-- [minimap2](https://github.com/lh3/minimap2) - For aligning short read contigs onto long reads
-- [fastutils](https://github.com/haghshenas/fastutils) - For FASTA/Q manipulation
 
 ## Bugs
 Please report the bugs through HASLR's issue tracker at [https://github.com/vpc-ccg/haslr/issues](https://github.com/vpc-ccg/haslr/issues).
