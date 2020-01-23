@@ -202,7 +202,7 @@ def parse_options():
     # optional
     parser_opt = parser.add_argument_group(title='optional arguments')
     parser_opt.add_argument('-t', '--threads', type=int, help='number of CPU threads to use [1]', default=1)
-    parser_opt.add_argument('--cov-lr', type=int, help='amount of long read coverage to use for assembly [20]', default=20)
+    parser_opt.add_argument('--cov-lr', type=int, help='amount of long read coverage to use for assembly [25]', default=25)
     parser_opt.add_argument('--aln-block', type=int, help='minimum length of alignment block [500]', default=500)
     parser_opt.add_argument('--aln-sim', type=float, help='minimum alignment similarity [0.85]', default=0.85)
     parser_opt.add_argument('--edge-sup', type=int, help='minimum number of long read supporting each edge [3]', default=3)

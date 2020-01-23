@@ -32,7 +32,7 @@ required arguments:
 
 optional arguments:
   -t, --threads THREADS          number of CPU threads to use [1]
-  --cov-lr COV_LR                amount of long read coverage to use for assembly [20]
+  --cov-lr COV_LR                amount of long read coverage to use for assembly [25]
   --aln-block ALN_BLOCK          minimum length of alignment block [500]
   --aln-sim ALN_SIM              minimum alignment similarity [0.85]
   --edge-sup EDGE_SUP            minimum number of long read supporting each edge [3]
