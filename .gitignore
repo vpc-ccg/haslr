@@ -1,0 +1,6 @@
+vendor
+bin/fastutils
+bin/minia
+bin/minimap2
+bin/nooverlap
+bin/haslr_assemble
