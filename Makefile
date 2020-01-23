@@ -58,9 +58,9 @@ clean_deps:
 
 clean:
 	$(MAKE) -C $(SRCDIR)/minia_nooverlap clean-all
-	@rm $(BINDIR)/nooverlap
+	@rm -f $(BINDIR)/nooverlap
 	$(MAKE) -C $(SRCDIR)/haslr_assemble clean-all
-	@rm $(BINDIR)/haslr_assemble
+	@rm -f $(BINDIR)/haslr_assemble
 
 clean_all: clean_deps clean
 

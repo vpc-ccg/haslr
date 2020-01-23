@@ -236,6 +236,9 @@ def parse_options():
     # print(args.short + [args.long])
     # 
     args.out = os.path.abspath(args.out)
+    args.long = os.path.abspath(args.long)
+    for i, f in enumerate(args.short):
+        args.short[i] = os.path.abspath(f)
 
     return args
 
