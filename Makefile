@@ -5,7 +5,7 @@ SRCDIR       := src
 THRID_PARTY  := vendor
 BINDIR       := bin
 
-all: deps haslr nooverlap
+all: deps haslr
 
 haslr: nooverlap haslr_assemble
 
@@ -44,17 +44,8 @@ deps:
 		cp $(THRID_PARTY)/fastutils-master/fastutils $(BINDIR)/fastutils; \
 	fi
 
-clean_deps:
+clean-deps:
 	@rm -rf $(BINDIR)/minimap2 $(BINDIR)/minia $(BINDIR)/fastutils $(THRID_PARTY)
-
-# purge-all: clean-exe clean purge-deps
-# 	@rm -rf $(LIBDIR)/edlib $(LIBDIR)/ksw2 $(LIBDIR)/minimap2 $(LIBDIR)/seq-align $(LIBDIR)/spoa 
-
-# clean:
-# 	@rm -f $(OBJS)
-
-# clean-exe:
-# 	@rm -f $(PROG)
 
 clean:
 	$(MAKE) -C $(SRCDIR)/minia_nooverlap clean-all
@@ -62,17 +53,8 @@ clean:
 	$(MAKE) -C $(SRCDIR)/haslr_assemble clean-all
 	@rm -f $(BINDIR)/haslr_assemble
 
-clean_all: clean_deps clean
-
-# clean-all: clean-exe clean
-# 	@if [ -d $(LIBDIR)/seq-align ]; then \
-# 		$(MAKE) -C $(LIBDIR)/seq-align clean; \
-# 		$(MAKE) -C $(LIBDIR)/seq-align/libs/string_buffer clean; \
-# 	fi
-# 	@if [ -d $(LIBDIR)/ksw2 ]; then \
-# 		$(MAKE) -C $(LIBDIR)/ksw2 clean; \
-# 	fi
-# 	@if [ -d $(LIBDIR)/minimap2 ]; then \
-# 		$(MAKE) -C $(LIBDIR)/minimap2 clean; \
-# 	fi
-# 	@$(MAKE) -C $(LIBDIR) -f spoa.make clean clean-lib
+clean-all: clean-deps
+	$(MAKE) -C $(SRCDIR)/minia_nooverlap clean-all
+	@rm -f $(BINDIR)/nooverlap
+	$(MAKE) -C $(SRCDIR)/haslr_assemble purge
+	@rm -f $(BINDIR)/haslr_assemble

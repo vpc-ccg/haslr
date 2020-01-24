@@ -32,8 +32,8 @@ OBJS         := $(SRCDIR)/main.o \
 
 all: OPTIMIZE_FLAGS debug
 profile: PROFILE_FLAGS debug
-debug: clean-exe $(PROG) clean
-# debug: clean-exe $(PROG)
+# debug: clean-exe $(PROG) clean
+debug: $(PROG)
 
 $(PROG): $(LIBDIR)/spoa/libspoa.a $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJS) $(LIBS)

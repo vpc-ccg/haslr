@@ -1,7 +1,8 @@
 all: OPTIMIZE_FLAGS build
 debug: DEBUG_FLAGS build
 profile: PROFILE_FLAGS build
-build: clean-exe nooverlap clean
+# build: clean-exe nooverlap clean
+build: nooverlap
 
 LDFLAGS=
 LIBS=-lz
