@@ -5,9 +5,9 @@
   - [Requirements](#requirements)
   - [Dependencies](#dependencies)
   - [Building from source](#building)
-- [Quick start](#quickstart)
 - [Command line](#command)
   - [Options](#options)
+- [Quick start](#quickstart)
 - [Bug report](#bugs)
 - [Copyright and License](#license)
 - [Author](#author)
@@ -44,19 +44,7 @@ bin/minia
 bin/minimap2
 bin/nooverlap
 ```
-Note that `bin/haslr.py` is the main wrapper of HASLR.
-
-## <a name="quickstart"></a>Quick start
-Here we assemble a smaple *E. coli* dataset of PacBio and Illumina reads:
-```
-# download PacBio reads
-wget http://gembox.cbcb.umd.edu/mhap/raw/ecoli_filtered.fastq.gz
-# download Illumina reads
-wget http://gembox.cbcb.umd.edu/mhap/raw/ecoli_miseq.1.fastq.gz
-wget http://gembox.cbcb.umd.edu/mhap/raw/ecoli_miseq.2.fastq.gz
-# run HASLR using 8 threads
-<path_to_repository>/bin/haslr.py -t 8 -o ecoli -g 4.6m -l ecoli_filtered.fastq.gz -x pacbio -s ecoli_miseq.1.fastq.gz ecoli_miseq.2.fastq.gz
-```
+Note that `bin/haslr.py` is the main python wrapper of HASLR.
 
 ## <a name="command"></a>Command line
 ```
@@ -83,6 +71,18 @@ optional arguments:
   --minia-asm MINIA_ASM          type of minia assembly chosen from {contigs,unitigs} [contigs]
   -v, --version                  print version
   -h, --help                     show this help message and exit
+```
+
+## <a name="quickstart"></a>Quick start
+Here we assemble a smaple *E. coli* dataset of PacBio and Illumina reads:
+```
+# download PacBio reads
+wget http://gembox.cbcb.umd.edu/mhap/raw/ecoli_filtered.fastq.gz
+# download Illumina reads
+wget http://gembox.cbcb.umd.edu/mhap/raw/ecoli_miseq.1.fastq.gz
+wget http://gembox.cbcb.umd.edu/mhap/raw/ecoli_miseq.2.fastq.gz
+# run HASLR using 8 threads
+haslr.py -t 8 -o ecoli -g 4.6m -l ecoli_filtered.fastq.gz -x pacbio -s ecoli_miseq.1.fastq.gz ecoli_miseq.2.fastq.gz
 ```
 
 ## <a name="bugs"></a>Bug report
