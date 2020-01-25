@@ -5,7 +5,8 @@
   - [Requirements](#requirements)
   - [Dependencies](#dependencies)
   - [Building from source](#building)
-- [Running](#running)
+- [Quick start](#quickstart)
+- [Command line](#command)
   - [Options](#options)
 - [Bug report](#bugs)
 - [Copyright and License](#license)
@@ -35,7 +36,19 @@ cd haslr
 make
 ```
 
-## <a name="running"></a>Running
+## <a name="quickstart"></a>Quick start
+Here we assemble a smaple *E. coli* dataset of PacBio and Illumina reads:
+```
+# download PacBio reads
+wget http://gembox.cbcb.umd.edu/mhap/raw/ecoli_filtered.fastq.gz
+# download Illumina reads
+wget http://gembox.cbcb.umd.edu/mhap/raw/ecoli_miseq.1.fastq.gz
+wget http://gembox.cbcb.umd.edu/mhap/raw/ecoli_miseq.2.fastq.gz
+# run HASLR
+./haslr.py -t 8 -o ecoli -g 4.6m -l ecoli_filtered.fastq.gz -x pacbio -s ecoli_miseq.1.fastq.gz ecoli_miseq.2.fastq.gz
+```
+
+## <a name="command"></a>Command line
 ```
 haslr.py [-t THREADS] -o OUT_DIR -g GENOME_SIZE -l LONG -x LONG_TYPE -s SHORT [SHORT ...]
 ```
