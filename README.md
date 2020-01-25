@@ -35,6 +35,16 @@ git clone https://github.com/vpc-ccg/haslr.git
 cd haslr
 make
 ```
+After a successful build, the content of `bin` directory should be as the following:
+```
+bin/fastutils
+bin/haslr_assemble
+bin/haslr.py
+bin/minia
+bin/minimap2
+bin/nooverlap
+```
+Note that `bin/haslr.py` is the main wrapper of HASLR.
 
 ## <a name="quickstart"></a>Quick start
 Here we assemble a smaple *E. coli* dataset of PacBio and Illumina reads:
@@ -44,8 +54,8 @@ wget http://gembox.cbcb.umd.edu/mhap/raw/ecoli_filtered.fastq.gz
 # download Illumina reads
 wget http://gembox.cbcb.umd.edu/mhap/raw/ecoli_miseq.1.fastq.gz
 wget http://gembox.cbcb.umd.edu/mhap/raw/ecoli_miseq.2.fastq.gz
-# run HASLR
-./haslr.py -t 8 -o ecoli -g 4.6m -l ecoli_filtered.fastq.gz -x pacbio -s ecoli_miseq.1.fastq.gz ecoli_miseq.2.fastq.gz
+# run HASLR using 8 threads
+<path_to_repository>/bin/haslr.py -t 8 -o ecoli -g 4.6m -l ecoli_filtered.fastq.gz -x pacbio -s ecoli_miseq.1.fastq.gz ecoli_miseq.2.fastq.gz
 ```
 
 ## <a name="command"></a>Command line
