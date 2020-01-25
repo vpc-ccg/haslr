@@ -30,7 +30,7 @@ def main():
     os.makedirs(args.out, exist_ok=True)
     # 
     lr_name = args.out + '/lr' + str(args.cov_lr) + 'x.fasta'
-    sys.stdout.write('subsampling {0}x long reads to {1}: '.format(args.cov_lr, lr_name))
+    sys.stdout.write('subsampling {0}x long reads to {1}... '.format(args.cov_lr, lr_name))
     sys.stdout.flush()
     if os.path.isfile(lr_name) == False:
         with open(lr_name, 'w') as fp:
@@ -46,7 +46,7 @@ def main():
         sys.stdout.flush()
     # 
     minimum_sr_contig = 250 # change if necessary
-    sys.stdout.write('assembling short reads with minia using k-mer size {0} and minimum abundance {1}: '.format(args.minia_kmer, args.minia_solid))
+    sys.stdout.write('assembling short reads using Minia... '.format(args.minia_kmer, args.minia_solid))
     sys.stdout.flush()
     sr_name = args.out + '/sr.fofn'
     sr_asm_prefix = args.out + '/sr_k{}_a{}'.format(args.minia_kmer, args.minia_solid)
@@ -74,7 +74,7 @@ def main():
         except:
             sys.stdout.write('ERROR: cannot delete file: {}\n'.format(fn))
     # 
-    sys.stdout.write('removing overlaps in short read assembly: ')
+    sys.stdout.write('removing overlaps in short read assembly... ')
     sys.stdout.flush()
     sr_asm_name_noov = sr_asm_prefix + '.' + args.minia_asm + '.nooverlap.fa'
     if os.path.isfile(sr_asm_name_noov) == False:
@@ -87,7 +87,7 @@ def main():
         sys.stdout.write('done\n')
     else:
         sys.stdout.write('already exists\n')
-    sys.stdout.write('removing short sequences in short read assembly: ')
+    sys.stdout.write('removing short sequences in short read assembly... ')
     sys.stdout.flush()
     sr_asm_name_good = '{0}.{1}.nooverlap.{2}.fa'.format(sr_asm_prefix, args.minia_asm, minimum_sr_contig)
     if os.path.isfile(sr_asm_name_good) == False:
@@ -103,7 +103,7 @@ def main():
         sys.stdout.write('already exists\n')
         sys.stdout.flush()
     # 
-    sys.stdout.write('aligning long reads to short read assembly: ')
+    sys.stdout.write('aligning long reads to short read assembly using minimap2... ')
     sys.stdout.flush()
     map_lr2contig = '{0}/map_{1}_k{2}_a{3}_lr{4}x'.format(args.out, args.minia_asm, args.minia_kmer, args.minia_solid, args.cov_lr)
     if args.type in ['corrected', 'ccs']:
@@ -125,7 +125,7 @@ def main():
         sys.stdout.write('already exists\n')
         sys.stdout.flush()
     # 
-    sys.stdout.write('assembling long reads: ')
+    sys.stdout.write('assembling long reads using HASLR... ')
     sys.stdout.flush()
     lr_asm_dir = '{0}/asm_{1}_k{2}_a{3}_lr{4}x_b{5}_s{6}_sim{7}'.format(args.out, args.minia_asm, args.minia_kmer, args.minia_solid, args.cov_lr, args.aln_block, args.edge_sup, args.aln_sim)
     if os.path.isfile(lr_asm_dir + '/asm.final.fa') == False:
