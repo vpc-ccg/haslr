@@ -75,7 +75,7 @@ optional arguments:
 ```
 
 ## <a name="quickstart"></a>Quick start
-Here we assemble a smaple *E. coli* dataset of PacBio and Illumina reads:
+Here we assemble a sample *E. coli* dataset of PacBio and Illumina reads:
 ```
 # download PacBio reads
 wget http://gembox.cbcb.umd.edu/mhap/raw/ecoli_filtered.fastq.gz
@@ -87,7 +87,7 @@ haslr.py -t 8 -o ecoli -g 4.6m -l ecoli_filtered.fastq.gz -x pacbio -s ecoli_mis
 ```
 
 ### <a name="output"></a>Output files
-With a successful run, the structure of the output directory with be as follows:
+With a successful run, the structure of the output directory will be as follows:
 ```
 ecoli                                               # output directory
 ├── asm_contigs_k49_a3_lr25x_b500_s3_sim0.85        # output directory containing long read assembly files
