@@ -1,6 +1,6 @@
 # HASLR: fast hybrid assembly of long reads
 
-- [Introduction](#introduction)
+- [Introduction](#about)
 - [Installation](#installation)
   - [Requirements](#requirements)
   - [Dependencies](#dependencies)
