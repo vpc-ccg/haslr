@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
         load_contig_compressed(gopt.contig_path, contig_list);
         write_contig_index(gopt.out_dir + "/index.contig", contig_list);
     }
-    fprintf(stderr, "       loaded %" PRIu64 " contigs\n", contig_list.contigs_size);
+    fprintf(stderr, "       loaded %lu contigs\n", contig_list.contigs_size);
     fprintf(stderr, "       elapsed time %.2lf CPU seconds (%.2lf real seconds)\n\n", get_cpu_time() - cputime_start, get_real_time() - realtime_start);
     // check if contigs are stored correctly
     // print_loaded_contigs(contig_list);
@@ -67,8 +67,8 @@ int main(int argc, char *argv[])
         // load long reads and alignments from index
         fprintf(stderr, "[NOTE] reading long read and alignment index: %s...\n", (gopt.out_dir + "/index.longread").c_str());
         read_longread_index(gopt.out_dir + "/index.longread", lr_list);
-        fprintf(stderr, "       loaded %" PRIu64 " long reads\n", lr_list.reads_size);
-        fprintf(stderr, "       loaded %" PRIu64 " alignments\n", lr_list.alignments_size);
+        fprintf(stderr, "       loaded %lu long reads\n", lr_list.reads_size);
+        fprintf(stderr, "       loaded %lu alignments\n", lr_list.alignments_size);
     }
     else
     {
@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
             load_longread_compressed(gopt.long_path, lr_list);
             update_longreads(lr_list);
         }
-        fprintf(stderr, "       loaded %" PRIu64 " long reads\n", lr_list.reads_size);
+        fprintf(stderr, "       loaded %lu long reads\n", lr_list.reads_size);
         fprintf(stderr, "       elapsed time %.2lf CPU seconds (%.2lf real seconds)\n\n", get_cpu_time() - cputime_start, get_real_time() - realtime_start);
 
         // load mapping of long reads onto contigs from PAF file
@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
             load_alignment(gopt.mapping_path, contig_list, lr_list);
             update_longreads(lr_list);
         }
-        fprintf(stderr, "       loaded %" PRIu64 " alignments\n", lr_list.alignments_size);
+        fprintf(stderr, "       loaded %lu alignments\n", lr_list.alignments_size);
         write_longread_index(gopt.out_dir + "/index.longread", lr_list);
     }
     fprintf(stderr, "       elapsed time %.2lf CPU seconds (%.2lf real seconds)\n\n", get_cpu_time() - cputime_start, get_real_time() - realtime_start);
