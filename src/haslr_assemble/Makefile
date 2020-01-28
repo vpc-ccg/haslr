@@ -36,7 +36,7 @@ profile: PROFILE_FLAGS debug
 debug: $(PROG)
 
 $(PROG): $(LIBDIR)/spoa/libspoa.a $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJS) $(LIBS)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJS) ${LDFLAGS} $(LIBS)
 
 $(LIBDIR)/spoa/libspoa.a:
 	@if [ ! -d $(LIBDIR)/spoa ]; then \

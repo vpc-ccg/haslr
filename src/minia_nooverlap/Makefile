@@ -4,7 +4,6 @@ profile: PROFILE_FLAGS build
 # build: clean-exe nooverlap clean
 build: minia_nooverlap
 
-LDFLAGS=
 LIBS=-lz
 CXXFLAGS=
 
