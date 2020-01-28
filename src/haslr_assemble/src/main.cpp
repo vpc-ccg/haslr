@@ -147,12 +147,12 @@ int main(int argc, char *argv[])
     // return 0;
 
     fprintf(stderr, "[NOTE] cleaning tips...\n");
-    int nb_tips = clean_tips(backbone_graph, 1, gopt.out_dir + "/backbone.04.tip.log");
-    nb_tips += clean_tips(backbone_graph, 2, gopt.out_dir + "/backbone.04.tip.log");
-    nb_tips += clean_tips(backbone_graph, 3, gopt.out_dir + "/backbone.04.tip.log");
+    int nb_tips = clean_tips(backbone_graph, 1, gopt.out_dir + "/backbone.03.tip.log");
+    nb_tips += clean_tips(backbone_graph, 2, gopt.out_dir + "/backbone.03.tip.log");
+    nb_tips += clean_tips(backbone_graph, 3, gopt.out_dir + "/backbone.03.tip.log");
     fprintf(stderr, "       removed %d tips\n", nb_tips);
-    bbg_general_stats(backbone_graph, contig_list, gopt.out_dir + "/backbone.04.tip.stat");
-    bbg_print_graph_gfa(backbone_graph, contig_list, gopt.out_dir + "/backbone.04.tip.gfa");
+    bbg_general_stats(backbone_graph, contig_list, gopt.out_dir + "/backbone.03.tip.stat");
+    bbg_print_graph_gfa(backbone_graph, contig_list, gopt.out_dir + "/backbone.03.tip.gfa");
     fprintf(stderr, "       elapsed time %.2lf CPU seconds (%.2lf real seconds)\n\n", get_cpu_time() - cputime_start, get_real_time() - realtime_start);
 
     // fprintf(stderr, "[NOTE] cleaning small bubbles...\n");
@@ -172,27 +172,27 @@ int main(int argc, char *argv[])
     // fprintf(stderr, "       elapsed time %.2lf CPU seconds (%.2lf real seconds)\n\n", get_cpu_time() - cputime_start, get_real_time() - realtime_start);
 
     fprintf(stderr, "[NOTE] cleaning simple bubbles...\n");
-    int nb_simple_bubbles = clean_simple_bubbles_old(backbone_graph, 4, gopt.out_dir + "/backbone.05.simplebubble.log"); // simple bubbles with at most 3 intermediate nodes
-    // int nb_simple_bubbles = clean_simple_bubbles(backbone_graph, 4, gopt.out_dir + "/backbone.05.simplebubble.log"); // simple bubbles with at most 3 intermediate nodes
+    int nb_simple_bubbles = clean_simple_bubbles_old(backbone_graph, 4, gopt.out_dir + "/backbone.04.simplebubble.log"); // simple bubbles with at most 3 intermediate nodes
+    // int nb_simple_bubbles = clean_simple_bubbles(backbone_graph, 4, gopt.out_dir + "/backbone.04.simplebubble.log"); // simple bubbles with at most 3 intermediate nodes
     fprintf(stderr, "       removed %d simple bubbles\n", nb_simple_bubbles);
-    bbg_general_stats(backbone_graph, contig_list, gopt.out_dir + "/backbone.05.simplebubble.stat");
-    bbg_print_graph_gfa(backbone_graph, contig_list, gopt.out_dir + "/backbone.05.simplebubble.gfa");
+    bbg_general_stats(backbone_graph, contig_list, gopt.out_dir + "/backbone.04.simplebubble.stat");
+    bbg_print_graph_gfa(backbone_graph, contig_list, gopt.out_dir + "/backbone.04.simplebubble.gfa");
     fprintf(stderr, "       elapsed time %.2lf CPU seconds (%.2lf real seconds)\n\n", get_cpu_time() - cputime_start, get_real_time() - realtime_start);
 
     // print_untangling_graph_node_list(backbone_graph, contig_list, gopt.out_dir + "/nodes_uniq.txt");
 
     fprintf(stderr, "[NOTE] cleaning super bubbles...\n");
-    int nb_super_bubbles = clean_super_bubbles(backbone_graph, 50000, gopt.out_dir + "/backbone.06.superbubble.log");
+    int nb_super_bubbles = clean_super_bubbles(backbone_graph, 50000, gopt.out_dir + "/backbone.05.superbubble.log");
     fprintf(stderr, "       removed %d super bubbles\n", nb_super_bubbles);
-    bbg_general_stats(backbone_graph, contig_list, gopt.out_dir + "/backbone.06.superbubble.stat");
-    bbg_print_graph_gfa(backbone_graph, contig_list, gopt.out_dir + "/backbone.06.superbubble.gfa");
+    bbg_general_stats(backbone_graph, contig_list, gopt.out_dir + "/backbone.05.superbubble.stat");
+    bbg_print_graph_gfa(backbone_graph, contig_list, gopt.out_dir + "/backbone.05.superbubble.gfa");
     fprintf(stderr, "       elapsed time %.2lf CPU seconds (%.2lf real seconds)\n\n", get_cpu_time() - cputime_start, get_real_time() - realtime_start);
 
     fprintf(stderr, "[NOTE] cleaning small bubbles...\n");
-    int nb_small_bubbles = clean_small_bubbles(backbone_graph, gopt.out_dir + "/backbone.07.smallbubble.log");
+    int nb_small_bubbles = clean_small_bubbles(backbone_graph, gopt.out_dir + "/backbone.06.smallbubble.log");
     fprintf(stderr, "       removed %d small bubbles\n", nb_small_bubbles);
-    bbg_general_stats(backbone_graph, contig_list, gopt.out_dir + "/backbone.07.smallbubble.stat");
-    bbg_print_graph_gfa(backbone_graph, contig_list, gopt.out_dir + "/backbone.07.smallbubble.gfa");
+    bbg_general_stats(backbone_graph, contig_list, gopt.out_dir + "/backbone.06.smallbubble.stat");
+    bbg_print_graph_gfa(backbone_graph, contig_list, gopt.out_dir + "/backbone.06.smallbubble.gfa");
     fprintf(stderr, "       elapsed time %.2lf CPU seconds (%.2lf real seconds)\n\n", get_cpu_time() - cputime_start, get_real_time() - realtime_start);
 
     // bbg_print_graph_gfa(backbone_graph, contig_list, gopt.out_dir + "/backbone.gfa");
