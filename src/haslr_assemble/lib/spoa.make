@@ -10,7 +10,7 @@ objects=spoa/src/graph.o spoa/src/alignment_engine.o spoa/src/simd_alignment_eng
 
 spoa/libspoa.a: $(objects)
 	$(AR) -qc $@ $(objects)
-	ranlib $@
+#	ranlib $@
 
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) $(INCS) -c $< -o $@
