@@ -12,9 +12,9 @@ PROG         := haslr_assemble
 INCS         := -I$(LIBDIR)/spoa/include/spoa
 LIBS         := $(LIBDIR)/spoa/libspoa.a -lz -lpthread #-lm 
 # passed for both C and C++
-CPPFLAGS     := 
+# CPPFLAGS     := 
 # passed for C
-CFLAGS       := 
+# CFLAGS       := 
 # passed for C++
 CXXFLAGS     := -g -Wall -std=c++11 $(INCS) 
 
