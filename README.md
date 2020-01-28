@@ -76,7 +76,7 @@ optional arguments:
 
 ## <a name="quickstart"></a>Quick start
 Here we assemble a sample *E. coli* dataset of PacBio and Illumina reads:
-```
+```bash
 # download PacBio reads
 wget http://gembox.cbcb.umd.edu/mhap/raw/ecoli_filtered.fastq.gz
 # download Illumina reads
