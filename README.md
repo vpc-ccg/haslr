@@ -143,7 +143,7 @@ Note that the name of output files and folders with be changed depending on the 
 ## <a name="publication"></a>Preprint
 
 > Haghshenas E., Asghari H., Stoye J., Chauve C., and Hach F. (2020)
-> *bioRxiv*. [doi:10.1101/2020.01.27.921817][doi]
+> *bioRxiv*. [doi:10.1101/2020.01.27.921817](https://www.biorxiv.org/content/10.1101/2020.01.27.921817v1)
 
 ## <a name="bugs"></a>Bug report
 Please report the bugs through HASLR's issue tracker at [https://github.com/vpc-ccg/haslr/issues](https://github.com/vpc-ccg/haslr/issues).
