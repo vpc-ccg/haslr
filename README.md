@@ -4,6 +4,7 @@
 - [Installation](#installation)
   - [Requirements](#requirements)
   - [Dependencies](#dependencies)
+  - [Using conda](#bioconda)
   - [Building from source](#building)
 - [Command line](#command)
   - [Options](#options)
@@ -29,6 +30,13 @@ HASLR depends on the following tools which will be installed automatically:
 - [Minia](https://github.com/GATB/minia) - For assembling short reads
 - [minimap2](https://github.com/lh3/minimap2) - For aligning short read contigs onto long reads
 - [fastutils](https://github.com/haghshenas/fastutils) - For FASTA/Q manipulation
+
+### <a name="bioconda"></a>Using conda
+HASLR can be installed using conda package manager via bioconda channel:
+
+```bash
+conda install -c bioconda haslr
+```
 
 ### <a name="building"></a>Building from source
 ```
