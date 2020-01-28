@@ -62,7 +62,7 @@ void set_option_defaults()
     gopt.max_uniq_dev = 0.15; // maximum deviation from mean frequency
     gopt.min_edge_sup = 3; // minimum support for each edge
     gopt.num_threads = 1;
-    gopt.prog_version = "0.0.0";
+    gopt.prog_version = "0.8a1";
 }
 
 bool parse_command_line(int argc, char *argv[])

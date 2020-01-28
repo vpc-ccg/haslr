@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-haslr_version = '0.0.0'
+haslr_version = '0.8a1'
 
 import os
 import sys
