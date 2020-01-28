@@ -15,8 +15,8 @@ minia_nooverlap: nooverlap.o
 checkLinks: checkLinks.o
 	$(CXX) checkLinks.o -o $@ ${LDFLAGS} ${LIBS}
 
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c $<
+# %.o: %.cpp
+# 	$(CXX) $(CXXFLAGS) -c $<
 
 clean:
 	@rm -f $(objects)
