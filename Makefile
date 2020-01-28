@@ -1,5 +1,6 @@
 MINIMAP2_V   := 2.17
 MINIA_V      := 3.2.1
+FASTUTILS_V  := 0.2
 
 SRCDIR       := src
 THRID_PARTY  := vendor
@@ -15,7 +16,7 @@ haslr_assemble:
 
 nooverlap:
 	$(MAKE) -C $(SRCDIR)/minia_nooverlap
-	@cp $(SRCDIR)/minia_nooverlap/nooverlap $(BINDIR)/nooverlap
+	@cp $(SRCDIR)/minia_nooverlap/minia_nooverlap $(BINDIR)/minia_nooverlap
 
 deps:
 	@if [ ! -f $(THRID_PARTY)/minimap2-${MINIMAP2_V}_x64-linux/minimap2 ]; then \
@@ -34,14 +35,14 @@ deps:
 	@if [ ! -f $(BINDIR)/minia ]; then \
 		cp $(THRID_PARTY)/minia-v${MINIA_V}-bin-Linux/bin/minia $(BINDIR)/minia; \
 	fi
-	@if [ ! -f $(THRID_PARTY)/fastutils-master/fastutils ]; then \
-		mkdir -p $(THRID_PARTY)/fastutils-master; \
-		cd $(THRID_PARTY); wget https://github.com/haghshenas/fastutils/archive/master.tar.gz -O fastutils-master.tar.gz; \
-		tar -zxvf fastutils-master.tar.gz; \
-		$(MAKE) -C fastutils-master; \
+	@if [ ! -f $(THRID_PARTY)/fastutils-${FASTUTILS_V}/fastutils ]; then \
+		mkdir -p $(THRID_PARTY)/fastutils-${FASTUTILS_V}; \
+		cd $(THRID_PARTY); wget https://github.com/haghshenas/fastutils/archive/v${FASTUTILS_V}.tar.gz -O fastutils-${FASTUTILS_V}.tar.gz; \
+		tar -zxvf fastutils-${FASTUTILS_V}.tar.gz; \
+		$(MAKE) -C fastutils-${FASTUTILS_V}; \
 	fi
 	@if [ ! -f $(BINDIR)/fastutils ]; then \
-		cp $(THRID_PARTY)/fastutils-master/fastutils $(BINDIR)/fastutils; \
+		cp $(THRID_PARTY)/fastutils-${FASTUTILS_V}/fastutils $(BINDIR)/fastutils; \
 	fi
 
 clean-deps:

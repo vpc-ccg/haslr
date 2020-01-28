@@ -2,5 +2,5 @@ vendor
 bin/fastutils
 bin/minia
 bin/minimap2
-bin/nooverlap
+bin/minia_nooverlap
 bin/haslr_assemble

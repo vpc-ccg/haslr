@@ -2,7 +2,7 @@ all: OPTIMIZE_FLAGS build
 debug: DEBUG_FLAGS build
 profile: PROFILE_FLAGS build
 # build: clean-exe nooverlap clean
-build: nooverlap
+build: minia_nooverlap
 
 LDFLAGS=
 LIBS=-lz
@@ -10,7 +10,7 @@ CXXFLAGS=
 
 objects=nooverlap.o
 
-nooverlap: nooverlap.o
+minia_nooverlap: nooverlap.o
 	$(CXX) nooverlap.o -o $@ ${LDFLAGS} ${LIBS}
 
 checkLinks: checkLinks.o

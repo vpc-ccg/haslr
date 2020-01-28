@@ -16,7 +16,7 @@ def main():
     dir_exe  = os.path.dirname(path_exe)
     path_haslr_assemble = dir_exe + '/haslr_assemble'
     check_prog(path_haslr_assemble)
-    path_nooverlap = dir_exe + '/nooverlap'
+    path_nooverlap = dir_exe + '/minia_nooverlap'
     check_prog(path_nooverlap)
     path_fastutils = dir_exe + '/fastutils'
     check_prog(path_fastutils)
