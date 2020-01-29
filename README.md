@@ -141,6 +141,7 @@ ecoli                                               # output directory
 **Important notes:**
   - The name of output files and folders with be changed depending on the parameters passed to `haslr.py`.
   - If you like to run HASLR with multiple parameters, pass the same output directory via `-o/--out`. In this case, HASLR will reuse already existing files without creating them from scratch. This will speed up your experiments when testing with multiple parameter sets.
+  - The backbone graph is stored in GFA format which can be visualized using [Bandage](https://github.com/rrwick/Bandage). For instance, you can investigage `backbone.06.smallbubble.gfa` which is the backbone graph after all simplifications.
 
 ## <a name="publication"></a>Preprint
 
