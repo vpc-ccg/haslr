@@ -106,7 +106,8 @@ def main():
     sys.stdout.write('aligning long reads to short read assembly using minimap2... ')
     sys.stdout.flush()
     map_lr2contig = '{0}/map_{1}_k{2}_a{3}_lr{4}x'.format(args.out, args.minia_asm, args.minia_kmer, args.minia_solid, args.cov_lr)
-    if args.type in ['corrected', 'ccs']:
+    # if args.type in ['corrected', 'ccs']:
+    if args.type == 'corrected':
         map_opt = '-k19'
     elif args.type == 'pacbio':
         map_opt = '-Hk17'
@@ -195,7 +196,7 @@ def parse_options():
     parser_req.add_argument('-g', '--genome', type=str, help='estimated genome size; accepted suffixes are k,m,g', required=True, metavar='GENOME_SIZE')
     parser_req.add_argument('-l', '--long', type=str, help='long read file', required=True)
     # parser_req.add_argument('-x', '--type', type=str, help='type of long reads chosen from {pacbio,nanopore, corrected, ccs}', required=True, choices=['pacbio', 'nanopore', 'corrected', 'ccs'], metavar='LONG_TYPE')
-    parser_req.add_argument('-x', '--type', type=str, help='type of long reads chosen from {pacbio,nanopore}', required=True, choices=['pacbio', 'nanopore'], metavar='LONG_TYPE')
+    parser_req.add_argument('-x', '--type', type=str, help='type of long reads chosen from {pacbio, nanopore, corrected}', required=True, choices=['pacbio', 'nanopore', 'corrected'], metavar='LONG_TYPE')
     parser_req.add_argument('-s', '--short', type=str, help='short read file', nargs='+')
     # parser_req.add_argument('-1', '--short1', type=str, help='forward file of a short read dataset', required=True, nargs='+')
     # parser_req.add_argument('-2', '--short2', type=str, help='backward file of a short read dataset', required=True, nargs='+')
