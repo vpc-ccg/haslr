@@ -29,35 +29,54 @@ def main():
     sys.stdout.write('output directory: {}\n'.format(args.out))
     os.makedirs(args.out, exist_ok=True)
     # 
-    lr_name = args.out + '/lr' + str(args.cov_lr) + 'x.fasta'
-    sys.stdout.write('subsampling {0}x long reads to {1}... '.format(args.cov_lr, lr_name))
-    sys.stdout.flush()
-    if os.path.isfile(lr_name) == False:
-        with open(lr_name, 'w') as fp:
-            try:
-                completed = subprocess.run([path_fastutils, 'subsample', '-i', args.long, '-d', str(args.cov_lr), '-g', args.genome, '-lnk'], stdout=fp)
-            except subprocess.CalledProcessError as err:
-                sys.stdout.write('failed\nERROR: {}\n'.format(err))
-                sys.exit(os.EX_SOFTWARE)
-        sys.stdout.write('done\n')
+    if args.cov_lr == 0:
+        lr_name = 'lrall'
+        lr_file = '{0}/{1}.fasta'.format(args.out, lr_name)
+        sys.stdout.write('renaming long reads and storing in {0}... '.format(lr_file))
         sys.stdout.flush()
+        if os.path.isfile(lr_file) == False:
+            with open(lr_file, 'w') as fp:
+                try:
+                    completed = subprocess.run([path_fastutils, 'format', '-i', args.long, '-d'], stdout=fp)
+                except subprocess.CalledProcessError as err:
+                    sys.stdout.write('failed\nERROR: {}\n'.format(err))
+                    sys.exit(os.EX_SOFTWARE)
+            sys.stdout.write('done\n')
+            sys.stdout.flush()
+        else:
+            sys.stdout.write('already exists\n')
+            sys.stdout.flush()
     else:
-        sys.stdout.write('already exists\n')
+        lr_name = 'lr{0}x'.format(args.cov_lr)
+        lr_file = '{0}/{1}.fasta'.format(args.out, lr_name)
+        sys.stdout.write('subsampling {0}x long reads to {1}... '.format(args.cov_lr, lr_file))
         sys.stdout.flush()
+        if os.path.isfile(lr_file) == False:
+            with open(lr_file, 'w') as fp:
+                try:
+                    completed = subprocess.run([path_fastutils, 'subsample', '-i', args.long, '-d', str(args.cov_lr), '-g', args.genome, '-lnk'], stdout=fp)
+                except subprocess.CalledProcessError as err:
+                    sys.stdout.write('failed\nERROR: {}\n'.format(err))
+                    sys.exit(os.EX_SOFTWARE)
+            sys.stdout.write('done\n')
+            sys.stdout.flush()
+        else:
+            sys.stdout.write('already exists\n')
+            sys.stdout.flush()
     # 
     minimum_sr_contig = 250 # change if necessary
     sys.stdout.write('assembling short reads using Minia... '.format(args.minia_kmer, args.minia_solid))
     sys.stdout.flush()
-    sr_name = args.out + '/sr.fofn'
+    sr_file = args.out + '/sr.fofn'
     sr_asm_prefix = args.out + '/sr_k{}_a{}'.format(args.minia_kmer, args.minia_solid)
     sr_asm_name = sr_asm_prefix + '.' + args.minia_asm + '.fa'
     if os.path.isfile(sr_asm_name) == False:
-        with open(sr_name, 'w') as fp:
+        with open(sr_file, 'w') as fp:
             for fn in args.short:
                 fp.write(fn + '\n')
         with open(sr_asm_prefix + '.log', 'w') as fp:
             try:
-                completed = subprocess.run([path_minia, '-nb-cores', str(args.threads), '-out-dir', args.out, '-out-tmp', args.out, '-out', sr_asm_prefix, '-in', sr_name, '-kmer-size', str(args.minia_kmer), '-abundance-min', str(args.minia_solid), '-no-ec-removal'], stdout=fp, stderr=fp)
+                completed = subprocess.run([path_minia, '-nb-cores', str(args.threads), '-out-dir', args.out, '-out-tmp', args.out, '-out', sr_asm_prefix, '-in', sr_file, '-kmer-size', str(args.minia_kmer), '-abundance-min', str(args.minia_solid), '-no-ec-removal'], stdout=fp, stderr=fp)
             except subprocess.CalledProcessError as err:
                 sys.stdout.write('failed\nERROR: {}\n'.format(err))
                 sys.exit(os.EX_SOFTWARE)
@@ -105,7 +124,7 @@ def main():
     # 
     sys.stdout.write('aligning long reads to short read assembly using minimap2... ')
     sys.stdout.flush()
-    map_lr2contig = '{0}/map_{1}_k{2}_a{3}_lr{4}x'.format(args.out, args.minia_asm, args.minia_kmer, args.minia_solid, args.cov_lr)
+    map_lr2contig = '{0}/map_{1}_k{2}_a{3}_{4}'.format(args.out, args.minia_asm, args.minia_kmer, args.minia_solid, lr_name)
     # if args.type in ['corrected', 'ccs']:
     if args.type == 'corrected':
         map_opt = '-k19'
@@ -116,7 +135,7 @@ def main():
     if os.path.isfile(map_lr2contig + '.paf') == False:
         with open(map_lr2contig + '.paf', 'w') as fpout, open(map_lr2contig + '.log', 'w') as fperr:
             try:
-                completed = subprocess.run([path_minimap2, '-t', str(args.threads), '--secondary=no', '-c', map_opt, sr_asm_name_good, lr_name], stdout=fpout, stderr=fperr)
+                completed = subprocess.run([path_minimap2, '-t', str(args.threads), '--secondary=no', '-c', map_opt, sr_asm_name_good, lr_file], stdout=fpout, stderr=fperr)
             except subprocess.CalledProcessError as err:
                 sys.stdout.write('failed\nERROR: {}\n'.format(err))
                 sys.exit(os.EX_SOFTWARE)
@@ -128,11 +147,11 @@ def main():
     # 
     sys.stdout.write('assembling long reads using HASLR... ')
     sys.stdout.flush()
-    lr_asm_dir = '{0}/asm_{1}_k{2}_a{3}_lr{4}x_b{5}_s{6}_sim{7}'.format(args.out, args.minia_asm, args.minia_kmer, args.minia_solid, args.cov_lr, args.aln_block, args.edge_sup, args.aln_sim)
+    lr_asm_dir = '{0}/asm_{1}_k{2}_a{3}_{4}_b{5}_s{6}_sim{7}'.format(args.out, args.minia_asm, args.minia_kmer, args.minia_solid, lr_name, args.aln_block, args.edge_sup, args.aln_sim)
     if os.path.isfile(lr_asm_dir + '/asm.final.fa') == False:
         with open(lr_asm_dir + '.out', 'w') as fpout, open(lr_asm_dir + '.err', 'w') as fperr:
             try:
-                completed = subprocess.run([path_haslr_assemble, '-t', str(args.threads), '-c', sr_asm_name_noov, '-l', lr_name, '-m', map_lr2contig + '.paf', '-d', lr_asm_dir, '--aln-block', str(args.aln_block), '--aln-sim', str(args.aln_sim), '--edge-sup', str(args.edge_sup)], stdout=fpout, stderr=fperr)
+                completed = subprocess.run([path_haslr_assemble, '-t', str(args.threads), '-c', sr_asm_name_noov, '-l', lr_file, '-m', map_lr2contig + '.paf', '-d', lr_asm_dir, '--aln-block', str(args.aln_block), '--aln-sim', str(args.aln_sim), '--edge-sup', str(args.edge_sup)], stdout=fpout, stderr=fperr)
             except subprocess.CalledProcessError as err:
                 sys.stdout.write('failed\nERROR: {}\n'.format(err))
                 sys.exit(os.EX_SOFTWARE)
@@ -203,7 +222,7 @@ def parse_options():
     # optional
     parser_opt = parser.add_argument_group(title='optional arguments')
     parser_opt.add_argument('-t', '--threads', type=int, help='number of CPU threads to use [1]', default=1)
-    parser_opt.add_argument('--cov-lr', type=int, help='amount of long read coverage to use for assembly [25]', default=25)
+    parser_opt.add_argument('--cov-lr', type=int, help='amount of long read coverage to use for assembly (0 for using all long reads) [25]', default=25)
     parser_opt.add_argument('--aln-block', type=int, help='minimum length of alignment block [500]', default=500)
     parser_opt.add_argument('--aln-sim', type=float, help='minimum alignment similarity [0.85]', default=0.85)
     parser_opt.add_argument('--edge-sup', type=int, help='minimum number of long read supporting each edge [3]', default=3)
