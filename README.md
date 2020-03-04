@@ -52,7 +52,7 @@ bin/haslr_assemble
 bin/haslr.py
 bin/minia
 bin/minimap2
-bin/nooverlap
+bin/minia_nooverlap
 ```
 Note that `bin/haslr.py` is the main python wrapper of HASLR.
 
