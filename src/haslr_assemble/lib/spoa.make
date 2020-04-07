@@ -2,7 +2,7 @@ all: clean-lib spoa/libspoa.a clean
 
 INCS=-Ispoa/include
 LIBS=
-CXXFLAGS=-Wall -Wextra -pedantic -march=native -O3 -DNDEBUG -std=c++11 $(INCS)
+CXXFLAGS=-Wall -Wextra -pedantic -msse4.1 -O3 -DNDEBUG -std=c++11 $(INCS)
 
 objects=spoa/src/graph.o spoa/src/alignment_engine.o spoa/src/simd_alignment_engine.o spoa/src/sisd_alignment_engine.o 
 # compile: $(objects)
