@@ -1,71 +1,166 @@
 #!/usr/bin/env python3
 
 haslr_version = '0.8a1'
+path_haslr_assemble = ''
+path_nooverlap = ''
+path_fastutils = ''
+path_minia = ''
+path_minimap2 = ''
 
 import os
 import sys
+import datetime
 import argparse
 import multiprocessing
 import subprocess
 import glob
 
 def main():
+    global path_haslr_assemble, path_nooverlap, path_fastutils, path_minia, path_minimap2
+    # step 0: initialize everything
     args = parse_options()
-    
     path_exe = os.path.abspath(__file__) # should I use realpath instead?
     dir_exe  = os.path.dirname(path_exe)
     path_haslr_assemble = dir_exe + '/haslr_assemble'
-    check_prog(path_haslr_assemble)
+    check_program(path_haslr_assemble)
     path_nooverlap = dir_exe + '/minia_nooverlap'
-    check_prog(path_nooverlap)
+    check_program(path_nooverlap)
     path_fastutils = dir_exe + '/fastutils'
-    check_prog(path_fastutils)
+    check_program(path_fastutils)
     path_minia = dir_exe + '/minia'
-    check_prog(path_minia)
+    check_program(path_minia)
     path_minimap2 = dir_exe + '/minimap2'
-    check_prog(path_minimap2)
-    
+    check_program(path_minimap2)
+    # 
     sys.stdout.write('number of threads: {}\n'.format(args.threads))
     sys.stdout.write('output directory: {}\n'.format(args.out))
     os.makedirs(args.out, exist_ok=True)
+    # step 1: preparing LRs
+    prepare_LRs(args)
+    # step 2: assembling SRs
+    assemble_SRs(args)
+    # step 3: removing short SRCs
+    remove_short_SRC(args)
+    # step 4: aligning LRs to SRCs
+    align_LR_SRC(args)
+    # step 5: assembling long reads
+    assemble_LR(args)
     # 
-    if args.cov_lr == 0:
-        lr_name = 'lrall'
-        lr_file = '{0}/{1}.fasta'.format(args.out, lr_name)
-        sys.stdout.write('renaming long reads and storing in {0}... '.format(lr_file))
+    # print(lrname)
+    # print(os.path.isfile(lrname))
+
+    # print(args.out)
+    # print(args.genome)
+    # print(args.long)
+    # print(args.type)
+    # print(args.short)
+    # print(type(args.short))
+
+    # print(args.threads)
+    # print(args.cov_lr)
+    # print(args.aln_block)
+    # print(args.edge_sup)
+    # print(args.minia_kmer)
+    # print(args.minia_solid)
+
+    sys.exit(os.EX_OK)
+
+####################################################################################################
+####################################################################################################
+def assemble_LR(args):
+    sys.stdout.write('[{0}] assembling long reads using HASLR... '.format(datetime.datetime.now().strftime("%d-%b-%Y %H:%M:%S")))
+    sys.stdout.flush()
+    lr_name = 'lrall' if args.cov_lr == 0 else 'lr{0}x'.format(args.cov_lr)
+    lr_file = '{0}/{1}.fasta'.format(args.out, lr_name)
+    sr_asm_prefix = args.out + '/sr_k{}_a{}'.format(args.minia_kmer, args.minia_solid)
+    sr_asm_name_noov = sr_asm_prefix + '.' + args.minia_asm + '.nooverlap.fa'
+    map_lr2contig = '{0}/map_{1}_k{2}_a{3}_c{4}_{5}'.format(args.out, args.minia_asm, args.minia_kmer, args.minia_solid, args.sr_contig, lr_name)
+    lr_asm_dir = '{0}/asm_{1}_k{2}_a{3}_c{4}_{5}_b{6}_s{7}_sim{8}'.format(args.out, args.minia_asm, args.minia_kmer, args.minia_solid, args.sr_contig, lr_name, args.aln_block, args.edge_sup, args.aln_sim)
+    if os.path.isfile(lr_asm_dir + '/asm.final.fa') == False:
+        with open(lr_asm_dir + '.out', 'w') as fpout, open(lr_asm_dir + '.err', 'w') as fperr:
+            try:
+                completed = subprocess.run([path_haslr_assemble, '-t', str(args.threads), '-c', sr_asm_name_noov, '-l', lr_file, '-m', map_lr2contig + '.paf', '-d', lr_asm_dir, '--aln-block', str(args.aln_block), '--aln-sim', str(args.aln_sim), '--edge-sup', str(args.edge_sup)], stdout=fpout, stderr=fperr)
+            except subprocess.CalledProcessError as err:
+                sys.stdout.write('failed\nERROR: {}\n'.format(err))
+                sys.exit(os.EX_SOFTWARE)
+        sys.stdout.write('done\n')
         sys.stdout.flush()
-        if os.path.isfile(lr_file) == False:
-            with open(lr_file, 'w') as fp:
-                try:
-                    completed = subprocess.run([path_fastutils, 'format', '-i', args.long, '-d'], stdout=fp)
-                except subprocess.CalledProcessError as err:
-                    sys.stdout.write('failed\nERROR: {}\n'.format(err))
-                    sys.exit(os.EX_SOFTWARE)
-            sys.stdout.write('done\n')
-            sys.stdout.flush()
-        else:
-            sys.stdout.write('already exists\n')
-            sys.stdout.flush()
     else:
-        lr_name = 'lr{0}x'.format(args.cov_lr)
-        lr_file = '{0}/{1}.fasta'.format(args.out, lr_name)
-        sys.stdout.write('subsampling {0}x long reads to {1}... '.format(args.cov_lr, lr_file))
+        sys.stdout.write('already exists\n')
         sys.stdout.flush()
-        if os.path.isfile(lr_file) == False:
-            with open(lr_file, 'w') as fp:
-                try:
-                    completed = subprocess.run([path_fastutils, 'subsample', '-i', args.long, '-d', str(args.cov_lr), '-g', args.genome, '-lnk'], stdout=fp)
-                except subprocess.CalledProcessError as err:
-                    sys.stdout.write('failed\nERROR: {}\n'.format(err))
-                    sys.exit(os.EX_SOFTWARE)
-            sys.stdout.write('done\n')
-            sys.stdout.flush()
-        else:
-            sys.stdout.write('already exists\n')
-            sys.stdout.flush()
+
+####################################################################################################
+####################################################################################################
+def align_LR_SRC(args):
+    sys.stdout.write('[{0}] aligning long reads to short read assembly using minimap2... '.format(datetime.datetime.now().strftime("%d-%b-%Y %H:%M:%S")))
+    sys.stdout.flush()
+    lr_name = 'lrall' if args.cov_lr == 0 else 'lr{0}x'.format(args.cov_lr)
+    lr_file = '{0}/{1}.fasta'.format(args.out, lr_name)
+    sr_asm_prefix = args.out + '/sr_k{}_a{}'.format(args.minia_kmer, args.minia_solid)
+    sr_asm_name_good = '{0}.{1}.nooverlap.{2}.fa'.format(sr_asm_prefix, args.minia_asm, args.sr_contig)
+    map_lr2contig = '{0}/map_{1}_k{2}_a{3}_c{4}_{5}'.format(args.out, args.minia_asm, args.minia_kmer, args.minia_solid, args.sr_contig, lr_name)
+    # if args.type in ['corrected', 'ccs']:
+    if args.type == 'corrected':
+        map_opt = '-k19'
+    elif args.type == 'pacbio':
+        map_opt = '-Hk17'
+    elif args.type == 'nanopore':
+        map_opt = '-k15'
+    if os.path.isfile(map_lr2contig + '.paf') == False:
+        with open(map_lr2contig + '.paf', 'w') as fpout, open(map_lr2contig + '.log', 'w') as fperr:
+            try:
+                completed = subprocess.run([path_minimap2, '-t', str(args.threads), '--secondary=no', '-c', map_opt, sr_asm_name_good, lr_file], stdout=fpout, stderr=fperr)
+            except subprocess.CalledProcessError as err:
+                sys.stdout.write('failed\nERROR: {}\n'.format(err))
+                sys.exit(os.EX_SOFTWARE)
+        sys.stdout.write('done\n')
+        sys.stdout.flush()
+    else:
+        sys.stdout.write('already exists\n')
+        sys.stdout.flush()
     # 
-    minimum_sr_contig = 250 # change if necessary
-    sys.stdout.write('assembling short reads using Minia... '.format(args.minia_kmer, args.minia_solid))
+
+####################################################################################################
+####################################################################################################
+def remove_short_SRC(args):
+    sys.stdout.write('[{0}] removing overlaps in short read assembly... '.format(datetime.datetime.now().strftime("%d-%b-%Y %H:%M:%S")))
+    sys.stdout.flush()
+    sr_asm_prefix = args.out + '/sr_k{}_a{}'.format(args.minia_kmer, args.minia_solid)
+    sr_asm_name = sr_asm_prefix + '.' + args.minia_asm + '.fa'
+    sr_asm_name_noov = sr_asm_prefix + '.' + args.minia_asm + '.nooverlap.fa'
+    if os.path.isfile(sr_asm_name_noov) == False:
+        with open(sr_asm_name_noov, 'w') as fp:
+            try:
+                completed = subprocess.run([path_nooverlap, sr_asm_name, str(args.minia_kmer)], stdout=fp, stderr=subprocess.DEVNULL)
+            except subprocess.CalledProcessError as err:
+                sys.stdout.write('failed\nERROR: {}\n'.format(err))
+                sys.exit(os.EX_SOFTWARE)
+        sys.stdout.write('done\n')
+    else:
+        sys.stdout.write('already exists\n')
+    sys.stdout.write('[{0}] removing short sequences in short read assembly... '.format(datetime.datetime.now().strftime("%d-%b-%Y %H:%M:%S")))
+    sys.stdout.flush()
+    sr_asm_name_good = '{0}.{1}.nooverlap.{2}.fa'.format(sr_asm_prefix, args.minia_asm, args.sr_contig)
+    if os.path.isfile(sr_asm_name_good) == False:
+        with open(sr_asm_name_good, 'w') as fp:
+            try:
+                completed = subprocess.run([path_fastutils, 'format', '-i', sr_asm_name_noov, '-m', str(args.sr_contig), '-c'], stdout=fp, stderr=subprocess.DEVNULL)
+            except subprocess.CalledProcessError as err:
+                sys.stdout.write('failed\nERROR: {}\n'.format(err))
+                sys.exit(os.EX_SOFTWARE)
+        sys.stdout.write('done\n')
+        sys.stdout.flush()
+    else:
+        sys.stdout.write('already exists\n')
+        sys.stdout.flush()
+    # 
+    return sr_asm_name_noov, sr_asm_name_good
+
+####################################################################################################
+####################################################################################################
+def assemble_SRs(args):
+    # minimum_sr_contig = 250 # change if necessary
+    sys.stdout.write('[{0}] assembling short reads using Minia... '.format(datetime.datetime.now().strftime("%d-%b-%Y %H:%M:%S")))
     sys.stdout.flush()
     sr_file = args.out + '/sr.fofn'
     sr_asm_prefix = args.out + '/sr_k{}_a{}'.format(args.minia_kmer, args.minia_solid)
@@ -93,93 +188,51 @@ def main():
         except:
             sys.stdout.write('ERROR: cannot delete file: {}\n'.format(fn))
     # 
-    sys.stdout.write('removing overlaps in short read assembly... ')
-    sys.stdout.flush()
-    sr_asm_name_noov = sr_asm_prefix + '.' + args.minia_asm + '.nooverlap.fa'
-    if os.path.isfile(sr_asm_name_noov) == False:
-        with open(sr_asm_name_noov, 'w') as fp:
-            try:
-                completed = subprocess.run([path_nooverlap, sr_asm_name, str(args.minia_kmer)], stdout=fp, stderr=subprocess.DEVNULL)
-            except subprocess.CalledProcessError as err:
-                sys.stdout.write('failed\nERROR: {}\n'.format(err))
-                sys.exit(os.EX_SOFTWARE)
-        sys.stdout.write('done\n')
-    else:
-        sys.stdout.write('already exists\n')
-    sys.stdout.write('removing short sequences in short read assembly... ')
-    sys.stdout.flush()
-    sr_asm_name_good = '{0}.{1}.nooverlap.{2}.fa'.format(sr_asm_prefix, args.minia_asm, minimum_sr_contig)
-    if os.path.isfile(sr_asm_name_good) == False:
-        with open(sr_asm_name_good, 'w') as fp:
-            try:
-                completed = subprocess.run([path_fastutils, 'format', '-i', sr_asm_name_noov, '-m', str(minimum_sr_contig), '-c'], stdout=fp, stderr=subprocess.DEVNULL)
-            except subprocess.CalledProcessError as err:
-                sys.stdout.write('failed\nERROR: {}\n'.format(err))
-                sys.exit(os.EX_SOFTWARE)
-        sys.stdout.write('done\n')
+    return sr_asm_prefix, sr_asm_name
+
+####################################################################################################
+####################################################################################################
+def prepare_LRs(args):
+    if args.cov_lr == 0:
+        lr_name = 'lrall'
+        lr_file = '{0}/{1}.fasta'.format(args.out, lr_name)
+        sys.stdout.write('[{0}] renaming long reads and storing in {1}... '.format(datetime.datetime.now().strftime("%d-%b-%Y %H:%M:%S"), lr_file))
         sys.stdout.flush()
+        if os.path.isfile(lr_file) == False:
+            with open(lr_file, 'w') as fp:
+                try:
+                    completed = subprocess.run([path_fastutils, 'format', '-i', args.long, '-d'], stdout=fp)
+                except subprocess.CalledProcessError as err:
+                    sys.stdout.write('failed\nERROR: {}\n'.format(err))
+                    sys.exit(os.EX_SOFTWARE)
+            sys.stdout.write('done\n')
+            sys.stdout.flush()
+        else:
+            sys.stdout.write('already exists\n')
+            sys.stdout.flush()
     else:
-        sys.stdout.write('already exists\n')
+        lr_name = 'lr{0}x'.format(args.cov_lr)
+        lr_file = '{0}/{1}.fasta'.format(args.out, lr_name)
+        sys.stdout.write('[{0}] subsampling {1}x long reads to {2}... '.format(datetime.datetime.now().strftime("%d-%b-%Y %H:%M:%S"), args.cov_lr, lr_file))
         sys.stdout.flush()
+        if os.path.isfile(lr_file) == False:
+            with open(lr_file, 'w') as fp:
+                try:
+                    completed = subprocess.run([path_fastutils, 'subsample', '-i', args.long, '-d', str(args.cov_lr), '-g', args.genome, '-lnk'], stdout=fp)
+                except subprocess.CalledProcessError as err:
+                    sys.stdout.write('failed\nERROR: {}\n'.format(err))
+                    sys.exit(os.EX_SOFTWARE)
+            sys.stdout.write('done\n')
+            sys.stdout.flush()
+        else:
+            sys.stdout.write('already exists\n')
+            sys.stdout.flush()
     # 
-    sys.stdout.write('aligning long reads to short read assembly using minimap2... ')
-    sys.stdout.flush()
-    map_lr2contig = '{0}/map_{1}_k{2}_a{3}_{4}'.format(args.out, args.minia_asm, args.minia_kmer, args.minia_solid, lr_name)
-    # if args.type in ['corrected', 'ccs']:
-    if args.type == 'corrected':
-        map_opt = '-k19'
-    elif args.type == 'pacbio':
-        map_opt = '-Hk17'
-    elif args.type == 'nanopore':
-        map_opt = '-k15'
-    if os.path.isfile(map_lr2contig + '.paf') == False:
-        with open(map_lr2contig + '.paf', 'w') as fpout, open(map_lr2contig + '.log', 'w') as fperr:
-            try:
-                completed = subprocess.run([path_minimap2, '-t', str(args.threads), '--secondary=no', '-c', map_opt, sr_asm_name_good, lr_file], stdout=fpout, stderr=fperr)
-            except subprocess.CalledProcessError as err:
-                sys.stdout.write('failed\nERROR: {}\n'.format(err))
-                sys.exit(os.EX_SOFTWARE)
-        sys.stdout.write('done\n')
-        sys.stdout.flush()
-    else:
-        sys.stdout.write('already exists\n')
-        sys.stdout.flush()
-    # 
-    sys.stdout.write('assembling long reads using HASLR... ')
-    sys.stdout.flush()
-    lr_asm_dir = '{0}/asm_{1}_k{2}_a{3}_{4}_b{5}_s{6}_sim{7}'.format(args.out, args.minia_asm, args.minia_kmer, args.minia_solid, lr_name, args.aln_block, args.edge_sup, args.aln_sim)
-    if os.path.isfile(lr_asm_dir + '/asm.final.fa') == False:
-        with open(lr_asm_dir + '.out', 'w') as fpout, open(lr_asm_dir + '.err', 'w') as fperr:
-            try:
-                completed = subprocess.run([path_haslr_assemble, '-t', str(args.threads), '-c', sr_asm_name_noov, '-l', lr_file, '-m', map_lr2contig + '.paf', '-d', lr_asm_dir, '--aln-block', str(args.aln_block), '--aln-sim', str(args.aln_sim), '--edge-sup', str(args.edge_sup)], stdout=fpout, stderr=fperr)
-            except subprocess.CalledProcessError as err:
-                sys.stdout.write('failed\nERROR: {}\n'.format(err))
-                sys.exit(os.EX_SOFTWARE)
-        sys.stdout.write('done\n')
-        sys.stdout.flush()
-    else:
-        sys.stdout.write('already exists\n')
-        sys.stdout.flush()
-    # print(lrname)
-    # print(os.path.isfile(lrname))
+    return lr_name, lr_file
 
-    # print(args.out)
-    # print(args.genome)
-    # print(args.long)
-    # print(args.type)
-    # print(args.short)
-    # print(type(args.short))
-
-    # print(args.threads)
-    # print(args.cov_lr)
-    # print(args.aln_block)
-    # print(args.edge_sup)
-    # print(args.minia_kmer)
-    # print(args.minia_solid)
-
-    sys.exit(os.EX_OK)
-
-def check_prog(prog):
+####################################################################################################
+####################################################################################################
+def check_program(prog):
     sys.stdout.write('checking {}: '.format(prog))
     sys.stdout.flush()
     if(os.path.isfile(prog) == False):
@@ -196,6 +249,8 @@ def check_prog(prog):
         sys.stdout.write('failed\nERROR: {}\n'.format(err))
         sys.exit(os.EX_SOFTWARE)
 
+####################################################################################################
+####################################################################################################
 class CustomHelpFormatter(argparse.HelpFormatter):
     def _format_action_invocation(self, action):
         self._max_help_position = 50
@@ -229,6 +284,7 @@ def parse_options():
     parser_opt.add_argument('--minia-kmer', type=int, help='kmer size used by minia [49]', default=49)
     parser_opt.add_argument('--minia-solid', type=int, help='minimum kmer abundance used by minia [3]', default=3)
     parser_opt.add_argument('--minia-asm', type=str, help='type of minia assembly chosen from {contigs,unitigs} [contigs]', metavar='MINIA_ASM', default='contigs', choices=['contigs', 'unitigs'])
+    parser_opt.add_argument('--sr-contig', type=int, help='minimum length of short read contigs to be used [250]', default=250)
     parser_opt.add_argument('-v', '--version', action='version', help='print version', version=haslr_version)
     parser_opt.add_argument('-h', '--help', action='help', help='show this help message and exit')
     # 
@@ -262,5 +318,7 @@ def parse_options():
 
     return args
 
+####################################################################################################
+####################################################################################################
 if __name__ == '__main__':
     main()
