@@ -46,23 +46,6 @@ def main():
     # step 5: assembling long reads
     assemble_LR(args)
     # 
-    # print(lrname)
-    # print(os.path.isfile(lrname))
-
-    # print(args.out)
-    # print(args.genome)
-    # print(args.long)
-    # print(args.type)
-    # print(args.short)
-    # print(type(args.short))
-
-    # print(args.threads)
-    # print(args.cov_lr)
-    # print(args.aln_block)
-    # print(args.edge_sup)
-    # print(args.minia_kmer)
-    # print(args.minia_solid)
-
     sys.exit(os.EX_OK)
 
 ####################################################################################################
@@ -162,13 +145,20 @@ def assemble_SRs(args):
     # minimum_sr_contig = 250 # change if necessary
     sys.stdout.write('[{0}] assembling short reads using Minia... '.format(datetime.datetime.now().strftime("%d-%b-%Y %H:%M:%S")))
     sys.stdout.flush()
-    sr_file = args.out + '/sr.fofn'
+    sr_file = '{0}/sr.fofn'.format(args.out)
     sr_asm_prefix = args.out + '/sr_k{}_a{}'.format(args.minia_kmer, args.minia_solid)
     sr_asm_name = sr_asm_prefix + '.' + args.minia_asm + '.fa'
     if os.path.isfile(sr_asm_name) == False:
-        with open(sr_file, 'w') as fp:
-            for fn in args.short:
-                fp.write(fn + '\n')
+        if args.short_fofn == False:
+            with open(sr_file, 'w') as fp:
+                for fn in args.short:
+                    fp.write(fn + '\n')
+        else:
+            with open(sr_file, 'w') as fp:
+                for fn in args.short:
+                    with open(fn, 'r') as infile:
+                        for line in infile:
+                            fp.write(line)
         with open(sr_asm_prefix + '.log', 'w') as fp:
             try:
                 completed = subprocess.run([path_minia, '-nb-cores', str(args.threads), '-out-dir', args.out, '-out-tmp', args.out, '-out', sr_asm_prefix, '-in', sr_file, '-kmer-size', str(args.minia_kmer), '-abundance-min', str(args.minia_solid), '-no-ec-removal'], stdout=fp, stderr=fp)
@@ -215,10 +205,22 @@ def prepare_LRs(args):
         lr_file = '{0}/{1}.fasta'.format(args.out, lr_name)
         sys.stdout.write('[{0}] subsampling {1}x long reads to {2}... '.format(datetime.datetime.now().strftime("%d-%b-%Y %H:%M:%S"), args.cov_lr, lr_file))
         sys.stdout.flush()
+        lr_fofn = '{0}/lr.fofn'.format(args.out)
+        if os.path.isfile(lr_fofn) == False:
+            if args.long_fofn == False:
+                with open(lr_fofn, 'w') as fp:
+                    for fn in args.long:
+                        fp.write(fn + '\n')
+            else:
+                with open(lr_fofn, 'w') as fp:
+                    for fn in args.long:
+                        with open(fn, 'r') as infile:
+                            for line in infile:
+                                fp.write(line)
         if os.path.isfile(lr_file) == False:
             with open(lr_file, 'w') as fp:
                 try:
-                    completed = subprocess.run([path_fastutils, 'subsample', '-i', args.long, '-d', str(args.cov_lr), '-g', args.genome, '-lnk'], stdout=fp)
+                    completed = subprocess.run([path_fastutils, 'subsample', '-i', lr_fofn, '-d', str(args.cov_lr), '-g', args.genome, '-lnk', '--fofn'], stdout=fp)
                 except subprocess.CalledProcessError as err:
                     sys.stdout.write('failed\nERROR: {}\n'.format(err))
                     sys.exit(os.EX_SOFTWARE)
@@ -263,12 +265,12 @@ class CustomHelpFormatter(argparse.HelpFormatter):
 
 def parse_options():
     fmt = lambda prog: CustomHelpFormatter(prog)
-    parser = argparse.ArgumentParser(add_help=False, formatter_class=fmt, usage='haslr.py [-t THREADS] -o OUT_DIR -g GENOME_SIZE -l LONG -x LONG_TYPE -s SHORT [SHORT ...]')
+    parser = argparse.ArgumentParser(add_help=False, formatter_class=fmt, usage='haslr.py [-t THREADS] -o OUT_DIR -g GENOME_SIZE -l LONG [LONG ...] -x LONG_TYPE -s SHORT [SHORT ...]')
     # required
     parser_req = parser.add_argument_group(title='required arguments')
     parser_req.add_argument('-o', '--out', type=str, help='output directory', required=True, metavar='OUT_DIR')
     parser_req.add_argument('-g', '--genome', type=str, help='estimated genome size; accepted suffixes are k,m,g', required=True, metavar='GENOME_SIZE')
-    parser_req.add_argument('-l', '--long', type=str, help='long read file', required=True)
+    parser_req.add_argument('-l', '--long', type=str, help='long read file', nargs='+')
     # parser_req.add_argument('-x', '--type', type=str, help='type of long reads chosen from {pacbio,nanopore, corrected, ccs}', required=True, choices=['pacbio', 'nanopore', 'corrected', 'ccs'], metavar='LONG_TYPE')
     parser_req.add_argument('-x', '--type', type=str, help='type of long reads chosen from {pacbio, nanopore, corrected}', required=True, choices=['pacbio', 'nanopore', 'corrected'], metavar='LONG_TYPE')
     parser_req.add_argument('-s', '--short', type=str, help='short read file', nargs='+')
@@ -285,6 +287,8 @@ def parse_options():
     parser_opt.add_argument('--minia-solid', type=int, help='minimum kmer abundance used by minia [3]', default=3)
     parser_opt.add_argument('--minia-asm', type=str, help='type of minia assembly chosen from {contigs,unitigs} [contigs]', metavar='MINIA_ASM', default='contigs', choices=['contigs', 'unitigs'])
     parser_opt.add_argument('--sr-contig', type=int, help='minimum length of short read contigs to be used [250]', default=250)
+    parser_opt.add_argument('--short-fofn', help='SHORT is a file of file names', default=False, action='store_true')
+    parser_opt.add_argument('--long-fofn', help='LONG is a file of file names', default=False, action='store_true')
     parser_opt.add_argument('-v', '--version', action='version', help='print version', version=haslr_version)
     parser_opt.add_argument('-h', '--help', action='help', help='show this help message and exit')
     # 
@@ -300,9 +304,14 @@ def parse_options():
     args.threads = max(args.threads, 1)
     args.threads = min(args.threads, multiprocessing.cpu_count())
     # 
-    if os.path.isfile(args.long) == False:
-        sys.stdout.write('{0}: error: could not find file {1}\n'.format(os.path.basename(__file__), args.long))
-        sys.exit(os.EX_USAGE)
+    # if os.path.isfile(args.long) == False:
+    #     sys.stdout.write('{0}: error: could not find file {1}\n'.format(os.path.basename(__file__), args.long))
+    #     sys.exit(os.EX_USAGE)
+    if args.long != None:
+        for fn in args.long:
+            if os.path.isfile(fn) == False:
+                sys.stdout.write('{0}: error: could not find file {1}\n'.format(os.path.basename(__file__), fn))
+                sys.exit(os.EX_USAGE)
     if args.short != None:
         for fn in args.short:
             if os.path.isfile(fn) == False:
@@ -312,10 +321,27 @@ def parse_options():
     # print(args.short + [args.long])
     # 
     args.out = os.path.abspath(args.out)
-    args.long = os.path.abspath(args.long)
+    # args.long = os.path.abspath(args.long)
+    for i, f in enumerate(args.long):
+        args.long[i] = os.path.abspath(f)
     for i, f in enumerate(args.short):
         args.short[i] = os.path.abspath(f)
-
+    # 
+    # print(args.out)
+    # print(args.genome)
+    # print(args.long)
+    # print(args.type)
+    # print(args.short)
+    # print(type(args.short))
+    # print(args.threads)
+    # print(args.cov_lr)
+    # print(args.aln_block)
+    # print(args.edge_sup)
+    # print(args.minia_kmer)
+    # print(args.minia_solid)
+    # print(args.short_fofn)
+    # print(args.long_fofn)
+    # 
     return args
 
 ####################################################################################################
