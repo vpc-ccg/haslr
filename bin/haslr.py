@@ -38,7 +38,8 @@ def main():
     # step 1: preparing LRs
     prepare_LRs(args)
     # step 2: assembling SRs
-    assemble_SRs(args)
+    if args.contig == None:
+        assemble_SRs(args)
     # step 3: removing short SRCs
     remove_short_SRC(args)
     # step 4: aligning LRs to SRCs
@@ -57,12 +58,15 @@ def assemble_LR(args):
     lr_file = '{0}/{1}.fasta'.format(args.out, lr_name)
     sr_asm_prefix = args.out + '/sr_k{}_a{}'.format(args.minia_kmer, args.minia_solid)
     sr_asm_name_noov = sr_asm_prefix + '.' + args.minia_asm + '.nooverlap.fa'
-    map_lr2contig = '{0}/map_{1}_k{2}_a{3}_c{4}_{5}'.format(args.out, args.minia_asm, args.minia_kmer, args.minia_solid, args.sr_contig, lr_name)
-    lr_asm_dir = '{0}/asm_{1}_k{2}_a{3}_c{4}_{5}_b{6}_s{7}_sim{8}'.format(args.out, args.minia_asm, args.minia_kmer, args.minia_solid, args.sr_contig, lr_name, args.aln_block, args.edge_sup, args.aln_sim)
+    map_lr2contig = '{0}/map_{1}_k{2}_a{3}_c{4}_{5}'.format(args.out, args.minia_asm, args.minia_kmer, args.minia_solid, args.min_src, lr_name)
+    lr_asm_dir = '{0}/asm_{1}_k{2}_a{3}_c{4}_{5}_b{6}_s{7}_sim{8}'.format(args.out, args.minia_asm, args.minia_kmer, args.minia_solid, args.min_src, lr_name, args.aln_block, args.edge_sup, args.aln_sim)
     if os.path.isfile(lr_asm_dir + '/asm.final.fa') == False:
         with open(lr_asm_dir + '.out', 'w') as fpout, open(lr_asm_dir + '.err', 'w') as fperr:
             try:
                 completed = subprocess.run([path_haslr_assemble, '-t', str(args.threads), '-c', sr_asm_name_noov, '-l', lr_file, '-m', map_lr2contig + '.paf', '-d', lr_asm_dir, '--aln-block', str(args.aln_block), '--aln-sim', str(args.aln_sim), '--edge-sup', str(args.edge_sup)], stdout=fpout, stderr=fperr)
+                if completed.returncode != 0:
+                    sys.stdout.write('failed\nERROR: "haslr_assemble" returned non-zero exit status\n')
+                    sys.exit(os.EX_SOFTWARE)
             except subprocess.CalledProcessError as err:
                 sys.stdout.write('failed\nERROR: {}\n'.format(err))
                 sys.exit(os.EX_SOFTWARE)
@@ -80,8 +84,8 @@ def align_LR_SRC(args):
     lr_name = 'lrall' if args.cov_lr == 0 else 'lr{0}x'.format(args.cov_lr)
     lr_file = '{0}/{1}.fasta'.format(args.out, lr_name)
     sr_asm_prefix = args.out + '/sr_k{}_a{}'.format(args.minia_kmer, args.minia_solid)
-    sr_asm_name_good = '{0}.{1}.nooverlap.{2}.fa'.format(sr_asm_prefix, args.minia_asm, args.sr_contig)
-    map_lr2contig = '{0}/map_{1}_k{2}_a{3}_c{4}_{5}'.format(args.out, args.minia_asm, args.minia_kmer, args.minia_solid, args.sr_contig, lr_name)
+    sr_asm_name_good = '{0}.{1}.nooverlap.{2}.fa'.format(sr_asm_prefix, args.minia_asm, args.min_src)
+    map_lr2contig = '{0}/map_{1}_k{2}_a{3}_c{4}_{5}'.format(args.out, args.minia_asm, args.minia_kmer, args.minia_solid, args.min_src, lr_name)
     # if args.type in ['corrected', 'ccs']:
     if args.type == 'corrected':
         map_opt = '-k19'
@@ -93,6 +97,9 @@ def align_LR_SRC(args):
         with open(map_lr2contig + '.paf', 'w') as fpout, open(map_lr2contig + '.log', 'w') as fperr:
             try:
                 completed = subprocess.run([path_minimap2, '-t', str(args.threads), '--secondary=no', '-c', map_opt, sr_asm_name_good, lr_file], stdout=fpout, stderr=fperr)
+                if completed.returncode != 0:
+                    sys.stdout.write('failed\nERROR: "minimap2" returned non-zero exit status\n')
+                    sys.exit(os.EX_SOFTWARE)
             except subprocess.CalledProcessError as err:
                 sys.stdout.write('failed\nERROR: {}\n'.format(err))
                 sys.exit(os.EX_SOFTWARE)
@@ -109,12 +116,18 @@ def remove_short_SRC(args):
     sys.stdout.write('[{0}] removing overlaps in short read assembly... '.format(datetime.datetime.now().strftime("%d-%b-%Y %H:%M:%S")))
     sys.stdout.flush()
     sr_asm_prefix = args.out + '/sr_k{}_a{}'.format(args.minia_kmer, args.minia_solid)
-    sr_asm_name = sr_asm_prefix + '.' + args.minia_asm + '.fa'
+    if args.contig != None:
+        sr_asm_name = args.contig
+    else:
+        sr_asm_name = sr_asm_prefix + '.' + args.minia_asm + '.fa'
     sr_asm_name_noov = sr_asm_prefix + '.' + args.minia_asm + '.nooverlap.fa'
     if os.path.isfile(sr_asm_name_noov) == False:
         with open(sr_asm_name_noov, 'w') as fp:
             try:
                 completed = subprocess.run([path_nooverlap, sr_asm_name, str(args.minia_kmer)], stdout=fp, stderr=subprocess.DEVNULL)
+                if completed.returncode != 0:
+                    sys.stdout.write('failed\nERROR: "minia_nooverlap" returned non-zero exit status\n')
+                    sys.exit(os.EX_SOFTWARE)
             except subprocess.CalledProcessError as err:
                 sys.stdout.write('failed\nERROR: {}\n'.format(err))
                 sys.exit(os.EX_SOFTWARE)
@@ -123,11 +136,14 @@ def remove_short_SRC(args):
         sys.stdout.write('already exists\n')
     sys.stdout.write('[{0}] removing short sequences in short read assembly... '.format(datetime.datetime.now().strftime("%d-%b-%Y %H:%M:%S")))
     sys.stdout.flush()
-    sr_asm_name_good = '{0}.{1}.nooverlap.{2}.fa'.format(sr_asm_prefix, args.minia_asm, args.sr_contig)
+    sr_asm_name_good = '{0}.{1}.nooverlap.{2}.fa'.format(sr_asm_prefix, args.minia_asm, args.min_src)
     if os.path.isfile(sr_asm_name_good) == False:
         with open(sr_asm_name_good, 'w') as fp:
             try:
-                completed = subprocess.run([path_fastutils, 'format', '-i', sr_asm_name_noov, '-m', str(args.sr_contig), '-c'], stdout=fp, stderr=subprocess.DEVNULL)
+                completed = subprocess.run([path_fastutils, 'format', '-i', sr_asm_name_noov, '-m', str(args.min_src), '-c'], stdout=fp, stderr=subprocess.DEVNULL)
+                if completed.returncode != 0:
+                    sys.stdout.write('failed\nERROR: "fastutils" returned non-zero exit status\n')
+                    sys.exit(os.EX_SOFTWARE)
             except subprocess.CalledProcessError as err:
                 sys.stdout.write('failed\nERROR: {}\n'.format(err))
                 sys.exit(os.EX_SOFTWARE)
@@ -162,6 +178,9 @@ def assemble_SRs(args):
         with open(sr_asm_prefix + '.log', 'w') as fp:
             try:
                 completed = subprocess.run([path_minia, '-nb-cores', str(args.threads), '-out-dir', args.out, '-out-tmp', args.out, '-out', sr_asm_prefix, '-in', sr_file, '-kmer-size', str(args.minia_kmer), '-abundance-min', str(args.minia_solid), '-no-ec-removal'], stdout=fp, stderr=fp)
+                if completed.returncode != 0:
+                    sys.stdout.write('failed\nERROR: "minia" returned non-zero exit status\n')
+                    sys.exit(os.EX_SOFTWARE)
             except subprocess.CalledProcessError as err:
                 sys.stdout.write('failed\nERROR: {}\n'.format(err))
                 sys.exit(os.EX_SOFTWARE)
@@ -183,6 +202,20 @@ def assemble_SRs(args):
 ####################################################################################################
 ####################################################################################################
 def prepare_LRs(args):
+    # 
+    lr_fofn = '{0}/lr.fofn'.format(args.out)
+    if os.path.isfile(lr_fofn) == False:
+        if args.long_fofn == False:
+            with open(lr_fofn, 'w') as fp:
+                for fn in args.long:
+                    fp.write(fn + '\n')
+        else:
+            with open(lr_fofn, 'w') as fp:
+                for fn in args.long:
+                    with open(fn, 'r') as infile:
+                        for line in infile:
+                            fp.write(line)
+    # 
     if args.cov_lr == 0:
         lr_name = 'lrall'
         lr_file = '{0}/{1}.fasta'.format(args.out, lr_name)
@@ -191,7 +224,10 @@ def prepare_LRs(args):
         if os.path.isfile(lr_file) == False:
             with open(lr_file, 'w') as fp:
                 try:
-                    completed = subprocess.run([path_fastutils, 'format', '-i', args.long, '-d'], stdout=fp)
+                    completed = subprocess.run([path_fastutils, 'format', '-i', lr_fofn, '-d', '--fofn'], stdout=fp)
+                    if completed.returncode != 0:
+                        sys.stdout.write('failed\nERROR: "fastutils" returned non-zero exit status\n')
+                        sys.exit(os.EX_SOFTWARE)
                 except subprocess.CalledProcessError as err:
                     sys.stdout.write('failed\nERROR: {}\n'.format(err))
                     sys.exit(os.EX_SOFTWARE)
@@ -205,22 +241,13 @@ def prepare_LRs(args):
         lr_file = '{0}/{1}.fasta'.format(args.out, lr_name)
         sys.stdout.write('[{0}] subsampling {1}x long reads to {2}... '.format(datetime.datetime.now().strftime("%d-%b-%Y %H:%M:%S"), args.cov_lr, lr_file))
         sys.stdout.flush()
-        lr_fofn = '{0}/lr.fofn'.format(args.out)
-        if os.path.isfile(lr_fofn) == False:
-            if args.long_fofn == False:
-                with open(lr_fofn, 'w') as fp:
-                    for fn in args.long:
-                        fp.write(fn + '\n')
-            else:
-                with open(lr_fofn, 'w') as fp:
-                    for fn in args.long:
-                        with open(fn, 'r') as infile:
-                            for line in infile:
-                                fp.write(line)
         if os.path.isfile(lr_file) == False:
             with open(lr_file, 'w') as fp:
                 try:
                     completed = subprocess.run([path_fastutils, 'subsample', '-i', lr_fofn, '-d', str(args.cov_lr), '-g', args.genome, '-lnk', '--fofn'], stdout=fp)
+                    if completed.returncode != 0:
+                        sys.stdout.write('failed\nERROR: "fastutils" returned non-zero exit status\n')
+                        sys.exit(os.EX_SOFTWARE)
                 except subprocess.CalledProcessError as err:
                     sys.stdout.write('failed\nERROR: {}\n'.format(err))
                     sys.exit(os.EX_SOFTWARE)
@@ -273,9 +300,8 @@ def parse_options():
     parser_req.add_argument('-l', '--long', type=str, help='long read file', nargs='+')
     # parser_req.add_argument('-x', '--type', type=str, help='type of long reads chosen from {pacbio,nanopore, corrected, ccs}', required=True, choices=['pacbio', 'nanopore', 'corrected', 'ccs'], metavar='LONG_TYPE')
     parser_req.add_argument('-x', '--type', type=str, help='type of long reads chosen from {pacbio, nanopore, corrected}', required=True, choices=['pacbio', 'nanopore', 'corrected'], metavar='LONG_TYPE')
-    parser_req.add_argument('-s', '--short', type=str, help='short read file', nargs='+')
-    # parser_req.add_argument('-1', '--short1', type=str, help='forward file of a short read dataset', required=True, nargs='+')
-    # parser_req.add_argument('-2', '--short2', type=str, help='backward file of a short read dataset', required=True, nargs='+')
+    parser_req.add_argument('-s', '--short', type=str, help='short read file. Required if --contig is not given', nargs='+')
+    parser_req.add_argument('-c', '--contig', type=str, help='pre-assembled short read contigs. If given, no need to pass --short')
     # optional
     parser_opt = parser.add_argument_group(title='optional arguments')
     parser_opt.add_argument('-t', '--threads', type=int, help='number of CPU threads to use [1]', default=1)
@@ -286,7 +312,7 @@ def parse_options():
     parser_opt.add_argument('--minia-kmer', type=int, help='kmer size used by minia [49]', default=49)
     parser_opt.add_argument('--minia-solid', type=int, help='minimum kmer abundance used by minia [3]', default=3)
     parser_opt.add_argument('--minia-asm', type=str, help='type of minia assembly chosen from {contigs,unitigs} [contigs]', metavar='MINIA_ASM', default='contigs', choices=['contigs', 'unitigs'])
-    parser_opt.add_argument('--sr-contig', type=int, help='minimum length of short read contigs to be used [250]', default=250)
+    parser_opt.add_argument('--min-src', type=int, help='minimum length of short read contigs to be used [250]', default=250)
     parser_opt.add_argument('--short-fofn', help='SHORT is a file of file names', default=False, action='store_true')
     parser_opt.add_argument('--long-fofn', help='LONG is a file of file names', default=False, action='store_true')
     parser_opt.add_argument('-v', '--version', action='version', help='print version', version=haslr_version)
@@ -297,35 +323,40 @@ def parse_options():
         sys.exit(os.EX_USAGE)
     args = parser.parse_args()
     # 
-    if args.type != 'ccs' and args.short == None:
-        sys.stdout.write('{0}: error: argument -s/--short is required when --type is "{1}"\n'.format(os.path.basename(__file__), args.type))
+    if args.long == None:
+        sys.stdout.write('{0}: error: argument -l/--long is required\n'.format(os.path.basename(__file__), args.type))
+        sys.exit(os.EX_USAGE)
+    # 
+    # if args.type != 'ccs' and args.short == None:
+    if args.short == None and args.contig == None:
+        sys.stdout.write('{0}: error: either -s/--short or -c/--contig is required for "{1}"\n'.format(os.path.basename(__file__), args.type))
         sys.exit(os.EX_USAGE)
     # 
     args.threads = max(args.threads, 1)
     args.threads = min(args.threads, multiprocessing.cpu_count())
-    # 
-    # if os.path.isfile(args.long) == False:
-    #     sys.stdout.write('{0}: error: could not find file {1}\n'.format(os.path.basename(__file__), args.long))
-    #     sys.exit(os.EX_USAGE)
-    if args.long != None:
-        for fn in args.long:
-            if os.path.isfile(fn) == False:
-                sys.stdout.write('{0}: error: could not find file {1}\n'.format(os.path.basename(__file__), fn))
-                sys.exit(os.EX_USAGE)
+    # check files
+    for fn in args.long:
+        if os.path.isfile(fn) == False:
+            sys.stdout.write('{0}: error: could not find file {1}\n'.format(os.path.basename(__file__), fn))
+            sys.exit(os.EX_USAGE)
     if args.short != None:
         for fn in args.short:
             if os.path.isfile(fn) == False:
                 sys.stdout.write('{0}: error: could not find file {1}\n'.format(os.path.basename(__file__), fn))
                 sys.exit(os.EX_USAGE)
-
-    # print(args.short + [args.long])
+    if args.contig != None:
+        if os.path.isfile(args.contig) == False:
+            sys.stdout.write('{0}: error: could not find file {1}\n'.format(os.path.basename(__file__), args.contig))
+            sys.exit(os.EX_USAGE)
     # 
     args.out = os.path.abspath(args.out)
-    # args.long = os.path.abspath(args.long)
     for i, f in enumerate(args.long):
         args.long[i] = os.path.abspath(f)
-    for i, f in enumerate(args.short):
-        args.short[i] = os.path.abspath(f)
+    if args.short != None:
+        for i, f in enumerate(args.short):
+            args.short[i] = os.path.abspath(f)
+    if args.contig != None:
+        args.contig = os.path.abspath(args.contig)
     # 
     # print(args.out)
     # print(args.genome)
