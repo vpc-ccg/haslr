@@ -43,6 +43,11 @@ int main(int argc, char* argv[])
     int overlapLen = str2type<int>(argv[2]) - 1;
     //
     gzFile fp = gzopen(argv[1], "r");
+    if(fp == NULL)
+    {
+        fprintf(stderr, "[ERROR] could not open file: %s\n", argv[1]);
+        return EXIT_FAILURE;
+    }
     kseq_t *seq = kseq_init(fp);
     while(kseq_read(seq) >= 0)
     {
