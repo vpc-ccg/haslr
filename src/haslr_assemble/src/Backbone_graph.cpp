@@ -148,6 +148,7 @@ void bbg_add_repetitive_SRCs(vector<BBG_Node_t> &graph, Contig_List_t &contig_li
 void bbg_build_graph(vector<BBG_Node_t> &graph, Contig_List_t &contig_list, vector<vector<Align_Seq_t*>> &compact_lr_list)
 {
     graph.resize(contig_list.contigs_size);
+    for(uint32_t i = 0; i < contig_list.contigs_size; i++) graph[i].contig_id = i;
     for(uint32_t i = 0; i < compact_lr_list.size(); i++)
     {
         if(compact_lr_list[i].size() > 1)
@@ -566,8 +567,9 @@ void bbg_print_graph_gfa(vector<BBG_Node_t> &graph, Contig_List_t &contig_list, 
     }
     for(set<uint32_t>::iterator it = to_print.begin(); it != to_print.end(); it++)
     {
-        string contig_str = get_uncompressed_dna(contig_list.contigs[*it].comp_seq, contig_list.contigs[*it].len, contig_list.contigs[*it].comp_len);
-        fprintf(fp, "S\t%u\t%s\tLN:i:%zu\tKC:i:%u\n", *it, contig_str.c_str(), contig_str.size(), contig_list.contigs[*it].kmer_count);
+        uint32_t cid = graph[*it].contig_id;
+        string contig_str = get_uncompressed_dna(contig_list.contigs[cid].comp_seq, contig_list.contigs[cid].len, contig_list.contigs[cid].comp_len);
+        fprintf(fp, "S\t%u\t%s\tLN:i:%zu\tKC:i:%u\n", *it, contig_str.c_str(), contig_str.size(), contig_list.contigs[cid].kmer_count);
     }
 
     // print links
@@ -618,7 +620,7 @@ void bbg_general_stats(vector<BBG_Node_t> &graph, Contig_List_t &contig_list, st
             queue<uint32_t> q;
             q.push(i);
             cc_node++;
-            cc_size += contig_list.contigs[i].len;
+            cc_size += contig_list.contigs[graph[i].contig_id].len;
             visited[i] = true;
             // fprintf(stdout, "new_component:%zu\tstart_node:%u\n", component_list.size(), i);
             while(q.size() > 0)
@@ -635,7 +637,7 @@ void bbg_general_stats(vector<BBG_Node_t> &graph, Contig_List_t &contig_list, st
                         {
                             q.push(next_id);
                             cc_node++;
-                            cc_size += contig_list.contigs[next_id].len;
+                            cc_size += contig_list.contigs[graph[next_id].contig_id].len;
                             visited[next_id] = true;
                             // fprintf(stdout, "\t\tpushed %u\n", next_id);
                         }

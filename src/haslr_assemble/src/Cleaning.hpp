@@ -14,5 +14,6 @@ int clean_small_bubbles(vector<BBG_Node_t> &graph, string logpath);
 int clean_simple_bubbles_old(vector<BBG_Node_t> &graph, int max_depth, string logpath);
 int clean_simple_bubbles(vector<BBG_Node_t> &graph, int max_depth, string logpath);
 int clean_super_bubbles(vector<BBG_Node_t> &graph, int max_dist, string logpath);
+int clean_resolve_4way_nodes(vector<BBG_Node_t> &graph, string logpath);
 
 #endif // __CLEANING__

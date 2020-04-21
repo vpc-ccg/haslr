@@ -647,6 +647,84 @@ int clean_super_bubbles(vector<BBG_Node_t> &graph, int max_dist, string logpath)
     return nb_removed;
 }
 
+// remove the edges between node1 and orig_node; add edges between node1 and copy_node
+void clean_update_edges(vector<BBG_Node_t> &graph, uint32_t node1, uint32_t rev1, uint32_t orig_node, uint32_t orig_rev, uint32_t copy_node)
+{
+    graph[copy_node].contig_id = graph[orig_node].contig_id;
+    // update in1 edge
+    uint32_t to_orig = (node1 << 1) | rev1;
+    uint32_t to_node1 = (orig_node << 1) | (1-orig_rev);
+    uint32_t to_node2 = (copy_node << 1) | (1-orig_rev);
+    // add the edges
+    graph[copy_node].edges[orig_rev][to_orig] = graph[orig_node].edges[orig_rev][to_orig];
+    graph[node1].edges[1-rev1][to_node2] = graph[node1].edges[1-rev1][to_node1];
+    // remove the edges
+    graph[orig_node].edges[orig_rev].erase(to_orig);
+    graph[node1].edges[1-rev1].erase(to_node1);
+}
+
+int clean_resolve_4way_nodes(vector<BBG_Node_t> &graph, string logpath)
+{
+    FILE *fp = file_open_write(logpath.c_str());
+    // 
+    int nb_resolved = 0;
+    uint32_t num = graph.size();
+    uint32_t i, j;
+    for(i = 0; i < num; i++)
+    {
+        if(graph[i].edges[1].size() == 2 && graph[i].edges[0].size() == 2) // two incoming edges and two outgoing edges
+        {
+            vector<uint32_t> supp_in[2], supp_out[2];
+            map<uint32_t, BBG_Edge_t>::iterator in0, in1, out0, out1;
+            in0 = graph[i].edges[1].begin();
+            in1 = graph[i].edges[1].begin(); in1++;
+            out0 = graph[i].edges[0].begin();
+            out1 = graph[i].edges[0].begin(); out1++;
+            for(j = 0; j < in0->second.edge_supp.size(); j++)
+                supp_in[0].push_back((in0->second.edge_supp[j].lr_id << 1) | (1 - in0->second.edge_supp[j].lr_strand));
+            for(j = 0; j < in1->second.edge_supp.size(); j++)
+                supp_in[1].push_back((in1->second.edge_supp[j].lr_id << 1) | (1 - in1->second.edge_supp[j].lr_strand));
+            // 
+            for(j = 0; j < out0->second.edge_supp.size(); j++)
+                supp_out[0].push_back((out0->second.edge_supp[j].lr_id << 1) | out0->second.edge_supp[j].lr_strand);
+            for(j = 0; j < out1->second.edge_supp.size(); j++)
+                supp_out[1].push_back((out1->second.edge_supp[j].lr_id << 1) | out1->second.edge_supp[j].lr_strand);
+            // 
+            vector<uint32_t> supp_0_0, supp_0_1, supp_1_0, supp_1_1;
+            set_intersection(supp_in[0].begin(), supp_in[0].end(), supp_out[0].begin(), supp_out[0].end(), back_inserter(supp_0_0));
+            set_intersection(supp_in[0].begin(), supp_in[0].end(), supp_out[1].begin(), supp_out[1].end(), back_inserter(supp_0_1));
+            set_intersection(supp_in[1].begin(), supp_in[1].end(), supp_out[0].begin(), supp_out[0].end(), back_inserter(supp_1_0));
+            set_intersection(supp_in[1].begin(), supp_in[1].end(), supp_out[1].begin(), supp_out[1].end(), back_inserter(supp_1_1));
+            fprintf(fp, "node: %u\n", i);
+            fprintf(fp, "0-0 %zu\n", supp_0_0.size());
+            fprintf(fp, "0-1 %zu\n", supp_0_1.size());
+            fprintf(fp, "1-0 %zu\n", supp_1_0.size());
+            fprintf(fp, "1-1 %zu\n", supp_1_1.size());
+            if(supp_0_0.size() > 2 * supp_0_1.size() || supp_1_1.size() > 2 * supp_1_0.size())
+            {
+                fprintf(fp, "connecting 0-0 and 1-1\n");
+                uint32_t last_node = graph.size();
+                graph.resize(graph.size() + 1); // make space for a new node
+                clean_update_edges(graph, (in0->first >> 1), (in0->first & 1), i, 1, last_node);
+                clean_update_edges(graph, (out0->first >> 1), (out0->first & 1), i, 0, last_node);
+                nb_resolved++;
+            }
+            if(2 * supp_0_0.size() < supp_0_1.size() || 2 * supp_1_1.size() < supp_1_0.size())
+            {
+                fprintf(fp, "connecting 0-1 and 1-0\n");
+                uint32_t last_node = graph.size();
+                graph.resize(graph.size() + 1); // make space for a new node
+                clean_update_edges(graph, (in0->first >> 1), (in0->first & 1), i, 1, last_node);
+                clean_update_edges(graph, (out1->first >> 1), (out1->first & 1), i, 0, last_node);
+                nb_resolved++;
+            }
+            fprintf(fp, "\n");
+        }
+    }
+    fclose(fp);
+    return nb_resolved;
+}
+
 // int remove_tips_old(vector<BBG_Node_t> &graph, int max_depth, string logpath)
 // {
 //     FILE *fp;

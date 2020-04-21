@@ -49,6 +49,7 @@ typedef struct // edge between head and tail
 
 typedef struct
 {
+    uint32_t contig_id;
     map<uint32_t, BBG_Edge_t> edges[2]; // 0 for outgoing edges and 1 for incoming edges
 } BBG_Node_t;
 
