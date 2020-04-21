@@ -627,7 +627,7 @@ void asm_assemble_single_path(deque<id_strand2_t> &path, vector<BBG_Node_t> &gra
     {
         uint32_t contig1 = path.front().id;
         uint32_t strand1 = path.front().strand;
-        string contig1_str = get_uncompressed_dna(_asm_contig_list->contigs[contig1].comp_seq, _asm_contig_list->contigs[contig1].len, _asm_contig_list->contigs[contig1].comp_len);
+        string contig1_str = get_uncompressed_dna(_asm_contig_list->contigs[graph[contig1].contig_id].comp_seq, _asm_contig_list->contigs[graph[contig1].contig_id].len, _asm_contig_list->contigs[graph[contig1].contig_id].comp_len);
         fprintf(fp_log, ">%d from:%u:%c to:%u:%c\n%s\n\n", nb_ctg, contig1, "+-"[strand1], contig1, "+-"[strand1], contig1_str.c_str());
         fprintf(fp_asm, ">%d from:%u:%c to:%u:%c\n%s\n", nb_ctg, contig1, "+-"[strand1], contig1, "+-"[strand1], contig1_str.c_str());
         nb_ctg++;        
@@ -660,7 +660,7 @@ void asm_assemble_single_path(deque<id_strand2_t> &path, vector<BBG_Node_t> &gra
     string assembled = "";
     uint32_t source_contig = path[0].id;
     uint32_t source_strand = path[0].strand;
-    uint32_t contig1_start = (source_strand == 0 ? 0 : _asm_contig_list->contigs[source_contig].len - 1);
+    uint32_t contig1_start = (source_strand == 0 ? 0 : _asm_contig_list->contigs[graph[source_contig].contig_id].len - 1);
     uint32_t target_contig = path[path.size() - 1].id;
     uint32_t target_strand = path[path.size() - 1].strand;
     uint32_t i;
@@ -668,7 +668,7 @@ void asm_assemble_single_path(deque<id_strand2_t> &path, vector<BBG_Node_t> &gra
     {
         uint32_t contig1 = path[i].id;
         uint32_t strand1 = path[i].strand;
-        string contig1_str = get_uncompressed_dna(_asm_contig_list->contigs[contig1].comp_seq, _asm_contig_list->contigs[contig1].len, _asm_contig_list->contigs[contig1].comp_len);
+        string contig1_str = get_uncompressed_dna(_asm_contig_list->contigs[graph[contig1].contig_id].comp_seq, _asm_contig_list->contigs[graph[contig1].contig_id].len, _asm_contig_list->contigs[graph[contig1].contig_id].comp_len);
         uint32_t contig2 = path[i+1].id;
         uint32_t strand2 = path[i+1].strand;
         // update flags
@@ -701,7 +701,7 @@ void asm_assemble_single_path(deque<id_strand2_t> &path, vector<BBG_Node_t> &gra
             assembled = "";
             source_contig = contig2;
             source_strand = strand2;
-            contig1_start = (source_strand == 0 ? 0 : _asm_contig_list->contigs[source_contig].len - 1);
+            contig1_start = (source_strand == 0 ? 0 : _asm_contig_list->contigs[graph[source_contig].contig_id].len - 1);
             fprintf(stderr, "[WARNING] breaking assembly for path %u:%c --> %u:%c between anchors %u:%c --> %u:%c\n", source_contig, "+-"[source_strand], target_contig, "+-"[target_strand], contig1, "+-"[strand1], contig2, "+-"[strand2]);
         }
         else
@@ -734,7 +734,7 @@ void asm_assemble_single_path(deque<id_strand2_t> &path, vector<BBG_Node_t> &gra
     // concatenate the last contig suffix
     uint32_t contig2 = path[i].id;
     uint32_t strand2 = path[i].strand;
-    string contig2_str = get_uncompressed_dna(_asm_contig_list->contigs[contig2].comp_seq, _asm_contig_list->contigs[contig2].len, _asm_contig_list->contigs[contig2].comp_len);
+    string contig2_str = get_uncompressed_dna(_asm_contig_list->contigs[graph[contig2].contig_id].comp_seq, _asm_contig_list->contigs[graph[contig2].contig_id].len, _asm_contig_list->contigs[graph[contig2].contig_id].comp_len);
     string suffix = "";
     if (strand2 == 0)
     {
