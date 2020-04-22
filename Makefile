@@ -1,6 +1,6 @@
 MINIMAP2_V   := 2.17
 MINIA_V      := 3.2.1
-FASTUTILS_V  := 0.2
+FASTUTILS_V  := 0.3
 
 SRCDIR       := src
 THRID_PARTY  := vendor
