@@ -207,12 +207,12 @@ int main(int argc, char *argv[])
     asm_cal_cns_seq_MT(&backbone_graph, &lr_list, gopt.out_dir + "/log_consensus.txt");
     fprintf(stderr, "       elapsed time %.2lf CPU seconds (%.2lf real seconds)\n\n", get_cpu_time() - cputime_start, get_real_time() - realtime_start);
 
-    fprintf(stderr, "[NOTE] resolving 4-way nodes...\n");
-    int nb_4way = clean_resolve_4way_nodes(backbone_graph, gopt.out_dir + "/backbone.07.4way.log");
-    fprintf(stderr, "       resolved %d 4-way nodes\n", nb_4way);
-    bbg_general_stats(backbone_graph, contig_list, gopt.out_dir + "/backbone.07.4way.stat");
-    bbg_print_graph_gfa(backbone_graph, contig_list, gopt.out_dir + "/backbone.07.4way.gfa");
-    fprintf(stderr, "       elapsed time %.2lf CPU seconds (%.2lf real seconds)\n\n", get_cpu_time() - cputime_start, get_real_time() - realtime_start);
+    // fprintf(stderr, "[NOTE] resolving 4-way nodes...\n");
+    // int nb_4way = clean_resolve_4way_nodes(backbone_graph, gopt.out_dir + "/backbone.07.4way.log");
+    // fprintf(stderr, "       resolved %d 4-way nodes\n", nb_4way);
+    // bbg_general_stats(backbone_graph, contig_list, gopt.out_dir + "/backbone.07.4way.stat");
+    // bbg_print_graph_gfa(backbone_graph, contig_list, gopt.out_dir + "/backbone.07.4way.gfa");
+    // fprintf(stderr, "       elapsed time %.2lf CPU seconds (%.2lf real seconds)\n\n", get_cpu_time() - cputime_start, get_real_time() - realtime_start);
 
     fprintf(stderr, "[NOTE] generating the assembly from the cleaned backbone graph...\n");
     asm_get_assembly(backbone_graph);
